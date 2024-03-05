@@ -165,7 +165,7 @@ class Transaction extends Model
 
     public static function getFinancialInsights($userId, $familyId = null)
     {
-        $monthlyIncome = self::calculateMonthlyIncome($userId, $familyId);
+        $monthlyIncome = self::calculateMonthlyIncome($userId, $familyId) ?: 0.01;
         $monthlySpending = self::calculateMonthlySpending($userId, $familyId);
 
         return [

@@ -43,6 +43,6 @@ class Family extends Model
 
     public function getBudgetMethod()
     {
-        return $this->budget_method ?? '50-30-20';
+        return $this->budget_method ?? 'Not Set';
     }
 }

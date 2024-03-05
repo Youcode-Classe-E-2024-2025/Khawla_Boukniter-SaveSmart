@@ -19,7 +19,7 @@ class FamilyController extends Controller
 
     private function getFamilyData($user)
     {
-        $income = Transaction::calculateMonthlyIncome($user->id, $user->family_id);
+        $income = Transaction::calculateMonthlyIncome($user->id, $user->family_id) ?: 0.01;
 
         return [
             'familyMembers' => User::where('family_id', $user->family_id)->get(),
@@ -124,7 +124,7 @@ class FamilyController extends Controller
             $user->update(['budget_method' => $request->budget_method]);
         }
 
-        $income = Transaction::calculateMonthlyIncome($user->id, $user->family_id);
+        $income = Transaction::calculateMonthlyIncome($user->id, $user->family_id) ?: 0.01;
 
         $spending = $this->getSpending($user);
 
