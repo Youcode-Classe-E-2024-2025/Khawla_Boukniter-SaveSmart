@@ -19,11 +19,12 @@ class TransactionFactory extends Factory
     public function definition(): array
     {
         $user = User::factory()->create();
+        $category = Category::factory()->create();
 
         return [
             'user_id' => $user->id,
             'family_id' => $user->family_id,
-            'category' => Category::factory(),
+            'category_id' => $category->id,
             'type' => fake()->randomElement(['income', 'expense']),
             'amount' => fake()->randomFloat(2, 10, 999999),
             'description' => fake()->sentence(),
