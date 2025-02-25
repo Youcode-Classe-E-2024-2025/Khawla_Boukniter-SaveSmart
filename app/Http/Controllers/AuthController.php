@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Family;
 
 class AuthController extends Controller
 {
@@ -20,14 +21,24 @@ class AuthController extends Controller
             'name' => 'required|string',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6',
-            'account_type' => 'required|in:personal,family'
+            'account_type' => 'required|in:personal,family',
+            'invitation_code' => 'required_if:account_type,join_family|string'
         ]);
+
+        if ($request->account_type === 'join_family') {
+            $family = Family::where('invitation_code', $request->invitation_code)->first();
+
+            if (!$family) {
+                return back()->withErrors(['invitation_code' => 'invalid invitation code']);
+            }
+        }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'account_type' => $request->account_type
+            'account_type' => $request->account_type,
+            'family_id' => isset($family) ? $family->id : null
         ]);
 
         Auth::login($user);

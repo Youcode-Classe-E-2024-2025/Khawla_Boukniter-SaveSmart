@@ -63,6 +63,24 @@
                             </div>
                         </label>
                     </div>
+
+                    <div class="relative col-span-2">
+                        <input type="radio" name="account_type" id="join_family" value="join_family" class="peer hidden">
+                        <label for="join_family" class="block cursor-pointer select-none rounded-lg p-4 text-center peer-checked:bg-emerald-500 peer-checked:text-white border border-gray-300 hover:bg-gray-50">
+                            <div class="flex items-center justify-center">
+                                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                </svg>
+                                Join Family
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="invitation_code_field" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700">Family Invitation Code</label>
+                    <input type="text" name="invitation_code"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
                 </div>
             </div>
 
@@ -92,3 +110,14 @@
 </div>
 
 @endsection
+
+@section('scripts')
+
+<script>
+    document.queryselectorAll('input[name="account_type"]').forEach(element => {
+        element.addEventListener('change', function() {
+            const code = document.getElementById('invitation_code_field');
+            code.classList.toggle('hidden', this.value !== 'join_family');
+        })
+    });
+</script>

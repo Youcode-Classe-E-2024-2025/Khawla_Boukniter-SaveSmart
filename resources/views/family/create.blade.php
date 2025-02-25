@@ -7,6 +7,16 @@
         <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
             <h2 class="text-2xl font-light text-gray-800 mb-6">Set Up Family Account</h2>
 
+            @if(session('invitation_code'))
+            <div class="mb-6 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                <h3 class="text-emerald-800 font-medium mb-2">Family Invitation Code</h3>
+                <div class="bg-white p-3 rounded-lg border border-emerald-100 text-center">
+                    <span class="text-2xl font-mono text-emerald-600">{{ session('invitation_code') }}</span>
+                </div>
+                <p class="mt-2 text-sm text-emerald-600">Share this code with family members to join your account</p>
+            </div>
+            @endif
+
             <form action="{{ route('family.store') }}" method="POST" class="space-y-6">
                 @csrf
                 <div>

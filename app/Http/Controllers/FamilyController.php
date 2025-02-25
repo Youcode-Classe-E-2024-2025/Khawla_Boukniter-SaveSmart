@@ -28,15 +28,18 @@ class FamilyController extends Controller
         $family = Family::create([
             'name' => $request->family_name,
             'owner_id' => Auth::id(),
+            'invitation_code' => Family::generateCode(),
         ]);
 
         // Auth::update(['family_id' => $family->id]);
 
         $user = Auth::user();
         $user->family_id = $family->id;
-
         $user->save();
 
-        return redirect()->route('family.index')->with('success', 'family created successfully');
+        return redirect()->route('family.index')->with([
+            'success' => 'family created successfully',
+            'invitation_code' => $family->invitation_code
+        ]);
     }
 }

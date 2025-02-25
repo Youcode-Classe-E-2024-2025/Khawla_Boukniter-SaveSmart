@@ -9,6 +9,7 @@ class Family extends Model
     protected $fillable = [
         'name',
         'owner_id',
+        'invitation_code',
     ];
 
     public function members()
@@ -19,5 +20,12 @@ class Family extends Model
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public static function generateCode()
+    {
+        do {
+            $code = strtoupper(substr(md5(uniqid()), 0, 8));
+        } while (static::where('invitation_code', $code)->exists());
     }
 }
