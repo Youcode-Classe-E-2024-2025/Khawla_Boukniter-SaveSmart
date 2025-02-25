@@ -5,7 +5,6 @@
 
 <div class="container mx-auto px-4 py-12">
     <div class="max-w-5xl mx-auto">
-        <!-- Profile Header -->
         <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-gray-100">
             <div class="flex items-center space-x-8">
                 <div class="h-28 w-28 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center text-white text-3xl font-light shadow-inner">
@@ -25,9 +24,7 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Main Content -->
             <div class="lg:col-span-2 space-y-8">
-                <!-- Personal Information -->
                 <div class="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
                     <h2 class="text-2xl font-light text-gray-800 mb-6">Personal Information</h2>
                     <form class="space-y-6">
@@ -51,7 +48,6 @@
                     </form>
                 </div>
 
-                <!-- Financial Preferences -->
                 <div class="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
                     <h2 class="text-2xl font-light text-gray-800 mb-6">Financial Settings</h2>
                     <div class="space-y-6">
@@ -75,9 +71,7 @@
                 </div>
             </div>
 
-            <!-- Side Panel -->
             <div class="space-y-8">
-                <!-- Quick Stats -->
                 <div class="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
                     <h2 class="text-2xl font-light text-gray-800 mb-6">Overview</h2>
                     <div class="space-y-4">
@@ -102,7 +96,6 @@
                     </div>
                 </div>
 
-                <!-- Actions -->
                 <div class="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
                     <button class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl px-6 py-3 font-medium hover:from-emerald-600 hover:to-teal-700 transition duration-200 shadow-sm">
                         Save Changes
