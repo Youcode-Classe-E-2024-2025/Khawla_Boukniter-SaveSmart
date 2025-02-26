@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FamilyController;
+use App\Http\Controllers\TransactionController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -20,6 +21,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/family/create', [FamilyController::class, 'create'])->name('family.create');
     Route::post('/family/store', [FamilyController::class, 'store'])->name('family.store');
     Route::get('/family/index', [FamilyController::class, 'index'])->name('family.index');
+
+    Route::resource('transactions', TransactionController::class);
 });
 
 Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
