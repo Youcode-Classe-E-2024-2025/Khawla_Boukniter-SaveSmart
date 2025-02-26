@@ -11,7 +11,13 @@ class FamilyController extends Controller
 {
     public function index()
     {
-        return view('family.index');
+        $user = Auth::user();
+
+        $family_members = User::where('family_id', $user->family_id)->get();
+
+        return view('family.index', [
+            'familyMembers' => $family_members
+        ]);
     }
 
     public function create()

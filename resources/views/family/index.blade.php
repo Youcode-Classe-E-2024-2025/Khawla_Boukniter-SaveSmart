@@ -6,7 +6,7 @@
     <div class="container mx-auto px-4 py-8">
         <div class="mb-8">
             <h1 class="text-3xl font-light text-gray-800">Welcome back, {{ auth()->user()->name }}</h1>
-            <p class="text-gray-600">Here's your financial overview</p>
+            <p class="text-gray-600">Here's your family financial overview</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -82,9 +82,25 @@
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-light text-gray-800">Family Members</h3>
+                    <span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-sm">
+                        {{ $familyMembers->count() }} Members
+                    </span>
                 </div>
-                <div class="space-y-4">
 
+                <div class="space-y-4">
+                    @foreach($familyMembers as $member)
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white font-medium">
+                                {{ strtoupper(substr($member->name, 0, 2)) }}
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-gray-800 font-medium">{{ $member->name }}</p>
+                                <p class="text-sm text-gray-500">{{ $member->email }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
                 </div>
             </div>
             @endif

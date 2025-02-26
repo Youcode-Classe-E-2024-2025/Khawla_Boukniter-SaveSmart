@@ -31,12 +31,23 @@ class AuthController extends Controller
 
             Log::info('Validation passed');
 
+            if ($request->account_type === 'join_family') {
+                $family = Family::where('invitation_code', $request->invitation_code)->first();
+
+                if (!$family) {
+                    return back()->withErrors(['invitation_code' => 'invalid invitation code']);
+                }
+
+                $family_id = $family->id;
+                $request->merge(['account_type' => 'family']);
+            }
+
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'account_type' => $request->account_type,
-                // 'family_id' => isset($family) ? $family->id : null
+                'family_id' => $family_id
             ]);
 
             Log::info('User created', ['user_id' => $user->id]);
@@ -44,9 +55,14 @@ class AuthController extends Controller
             Auth::login($user);
             Log::info('User logged in');
 
-            if ($request->account_type === 'family') {
+            if ($request->account_type === 'family' && !$family_id) {
+
                 Log::info('Redirecting to family creation');
                 return redirect()->route('family.create')->with('success', 'registration successful, create family account');
+            } elseif ($request->account_type === 'family' && $family_id) {
+
+                Log::info('Redirecting to familly dashboard');
+                return redirect()->route('family.index')->with('success', 'Joined family successfully');
             }
 
             Log::info('Redirection to profile');
@@ -58,22 +74,6 @@ class AuthController extends Controller
             ]);
             return back()->withErrors(['error' => 'Registration failed' . $e->getMessage()]);
         }
-
-
-        // if ($request->account_type === 'join_family') {
-        //     $family = Family::where('invitation_code', $request->invitation_code)->first();
-
-        //     if (!$family) {
-        //         return back()->withErrors(['invitation_code' => 'invalid invitation code']);
-        //     }
-        // }
-
-
-
-
-
-
-
     }
 
     public function showLoginForm()
@@ -89,7 +89,11 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($request->only('email', 'password'))) {
-            return redirect()->route('profile')->with('success', 'login successful');
+            if (Auth::user()->account_type === 'personal') {
+                return redirect()->route('profile')->with('success', 'login successful');
+            } elseif (Auth::user()->account_type === 'family') {
+                return redirect()->route('family.index')->with('success', 'Redirecting to familly dashboard');
+            }
         }
 
         return back()->withErrors(['email' => 'Invalid credentials']);
