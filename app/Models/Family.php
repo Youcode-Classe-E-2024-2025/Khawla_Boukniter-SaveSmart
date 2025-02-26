@@ -25,7 +25,10 @@ class Family extends Model
     public static function generateCode()
     {
         do {
-            $code = strtoupper(substr(md5(uniqid()), 0, 8));
+            $randomStr = (string)md5(mt_rand());
+            $code = strtoupper(substr($randomStr, 0, 8));
         } while (static::where('invitation_code', $code)->exists());
+
+        return $code;
     }
 }

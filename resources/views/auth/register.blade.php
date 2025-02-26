@@ -112,12 +112,19 @@
 @endsection
 
 @section('scripts')
-
 <script>
-    document.queryselectorAll('input[name="account_type"]').forEach(element => {
-        element.addEventListener('change', function() {
-            const code = document.getElementById('invitation_code_field');
-            code.classList.toggle('hidden', this.value !== 'join_family');
-        })
+    document.addEventListener('DOMContentLoaded', function() {
+        const radioButtons = document.querySelectorAll('input[name="account_type"]');
+        if (radioButtons) {
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const codeField = document.getElementById('invitation_code_field');
+                    if (codeField) {
+                        codeField.classList.toggle('hidden', this.value !== 'join_family');
+                    }
+                });
+            });
+        }
     });
 </script>
+@endsection

@@ -82,23 +82,9 @@
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-light text-gray-800">Family Members</h3>
-                    <button class="text-emerald-600 hover:text-emerald-700">Add Member</button>
                 </div>
                 <div class="space-y-4">
-                    @foreach($familyMembers as $member)
-                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 font-medium">
-                                {{ substr($member->name, 0, 2) }}
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-gray-800">{{ $member->name }}</p>
-                                <p class="text-sm text-gray-500">{{ $member->email }}</p>
-                            </div>
-                        </div>
-                        <span class="text-sm text-gray-600">Member</span>
-                    </div>
-                    @endforeach
+
                 </div>
             </div>
             @endif

@@ -35,6 +35,27 @@
         </div>
     </nav>
 
+    @if(session('success'))
+    <div class="bg-emerald-100 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg mb-4 mx-4 mt-4">
+        {{ session('success') }}
+        @if(session('invitation_code'))
+        <div class="mt-2 bg-white p-3 rounded-md border border-emerald-200">
+            <p class="text-sm text-emerald-600">Family Invitation Code:</p>
+            <p class="font-mono text-lg">{{ session('invitation_code') }}</p>
+        </div>
+        @endif
+    </div>
+    @endif
+
+    @if(session('error') || $errors->any())
+    <div class="bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 mx-4 mt-4">
+        {{ session('error') }}
+        @foreach($errors->all() as $error)
+        <div>{{ $error }}</div>
+        @endforeach
+    </div>
+    @endif
+
     <main class="flex-grow">
         @yield('content')
     </main>
