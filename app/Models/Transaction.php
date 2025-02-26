@@ -13,8 +13,5 @@ class Transaction extends Model
         'category',
         'amount',
         'description',
-        'date',
     ];
-
-    protected $casts = ['date' => 'date'];
 }

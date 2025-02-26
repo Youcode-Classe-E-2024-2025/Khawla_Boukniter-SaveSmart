@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('category');
             $table->decimal('amount');
             $table->text('description')->nullable();
-            $table->date('date');
             $table->timestamps();
         });
     }

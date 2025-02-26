@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FamilyController;
 use App\Http\Controllers\TransactionController;
 
@@ -23,6 +24,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/family/index', [FamilyController::class, 'index'])->name('family.index');
 
     Route::resource('transactions', TransactionController::class);
+
+    Route::post('/categories', [CategoryController::class, 'store']);
 });
 
 Route::get('/profile', [AuthController::class, 'profile'])->name('profile');

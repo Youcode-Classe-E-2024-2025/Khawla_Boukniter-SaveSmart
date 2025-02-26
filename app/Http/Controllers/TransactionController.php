@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Transaction;
+use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
@@ -25,7 +26,11 @@ class TransactionController extends Controller
      */
     public function create()
     {
-        return view('transactions.create');
+        $user = Auth::user();
+
+        $categories = Category::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->get();
+
+        return view('transactions.create', ['categories' => $categories]);
     }
 
     /**
@@ -35,16 +40,21 @@ class TransactionController extends Controller
     {
         $validated = $request->validate([
             'type' => 'required|in:income,expense',
-            'category' => 'required|string',
+            'category' => 'required_without:newCategory|string',
+            'newCategory' => 'required_without:category|string',
             'amount' => 'required|numeric|min:0',
             'description' => 'nullable|string',
-            'date' => 'required|date',
         ]);
+
+        $category = $request->category ?? $request->newCategory;
 
         $transactions = Transaction::create([
             'user_id' => Auth::id(),
             'family_id' => Auth::user()->family_id,
-            ...$validated
+            'type' => $validated['type'],
+            'category' => $validated['category'],
+            'amount' => $validated['amount'],
+            'description' => $validated['description'],
         ]);
 
         return redirect()->route('transactions.index')->with('success', 'Transaction added');

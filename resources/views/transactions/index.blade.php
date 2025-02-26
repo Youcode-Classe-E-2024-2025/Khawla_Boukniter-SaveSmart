@@ -33,7 +33,7 @@
                 <p class="font-medium {{ $transaction->type === 'income' ? 'text-emerald-600' : 'text-red-600' }}">
                     {{ $transaction->type === 'income' ? '+' : '-' }}{{ number_format($transaction->amount, 2) }}
                 </p>
-                <p class="text-sm text-gray-500">{{ $transaction->date->format('M d, Y') }}</p>
+                <p class="text-sm text-gray-500">{{ $transaction->created_at->format('M d, Y') }}</p>
             </div>
         </div>
         @endforeach
