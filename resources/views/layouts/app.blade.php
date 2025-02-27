@@ -37,7 +37,7 @@
     </nav>
 
     @if(session('success'))
-    <div class="bg-emerald-100 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg mb-4 mx-4 mt-4">
+    <div class="bg-emerald-100 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg mb-4 mx-15 mt-4">
         {{ session('success') }}
         @if(session('invitation_code'))
         <div class="mt-2 bg-white p-3 rounded-md border border-emerald-200">

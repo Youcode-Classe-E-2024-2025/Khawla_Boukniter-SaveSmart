@@ -53,12 +53,6 @@
                         class="w-full rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">{{ $transaction->description }}</textarea>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
-                    <input type="date" name="date" value="{{ $transaction->date->format('Y-m-d') }}"
-                        class="w-full rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
-                </div>
-
                 <button type="submit" class="w-full bg-emerald-500 text-white py-2 px-4 rounded-lg hover:bg-emerald-600">
                     Update Transaction
                 </button>

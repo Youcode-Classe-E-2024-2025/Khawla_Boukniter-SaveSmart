@@ -71,11 +71,11 @@ class TransactionController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Transaction $transaction)
     {
         $categories = Category::where('user_id', Auth::id())->orWhere('family_id', Auth::user()->family_id)->get();
 
-        return view('transactions.edit', ['categories' => $categories]);
+        return view('transactions.edit', ['transaction' => $transaction, 'categories' => $categories]);
     }
 
     /**
@@ -102,6 +102,6 @@ class TransactionController extends Controller
     {
         $transaction->delete();
 
-        return redirect()->route('transaction.index')->with('success', ('transaction deleted'));
+        return redirect()->route('transactions.index')->with('success', ('transaction deleted'));
     }
 }
