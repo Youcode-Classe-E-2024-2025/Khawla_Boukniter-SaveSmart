@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FamilyController;
+use App\Http\Controllers\GoalController;
 use App\Http\Controllers\TransactionController;
 
 Route::get('/', function () {
@@ -24,6 +25,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/family/index', [FamilyController::class, 'index'])->name('family.index');
 
     Route::resource('transactions', TransactionController::class);
+
+    Route::resource('goals', GoalController::class);
 
     Route::post('/categories', [CategoryController::class, 'store']);
 });

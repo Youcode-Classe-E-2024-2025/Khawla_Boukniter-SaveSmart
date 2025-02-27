@@ -22,6 +22,11 @@ class Family extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    public function goal()
+    {
+        return $this->hasMany(Goal::class);
+    }
+
     public static function generateCode()
     {
         do {
