@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained();
             $table->foreignId('family_id')->nullable()->constrained();
             $table->timestamps();
+            $table->unique(['name', 'user_id', 'family_id']);
         });
     }
 

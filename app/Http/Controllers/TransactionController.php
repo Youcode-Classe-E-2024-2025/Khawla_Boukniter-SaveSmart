@@ -46,13 +46,13 @@ class TransactionController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $category = $request->category ?? $request->newCategory;
+        $category = $request->category ?: $request->newCategory;
 
         $transactions = Transaction::create([
             'user_id' => Auth::id(),
             'family_id' => Auth::user()->family_id,
             'type' => $validated['type'],
-            'category' => $validated['category'],
+            'category' => $category,
             'amount' => $validated['amount'],
             'description' => $validated['description'],
         ]);
@@ -73,22 +73,35 @@ class TransactionController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $categories = Category::where('user_id', Auth::id())->orWhere('family_id', Auth::user()->family_id)->get();
+
+        return view('transactions.edit', ['categories' => $categories]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Transaction $transaction)
     {
-        //
+        $validated = $request->validate([
+            'type' => 'required|in:income,expense',
+            'category' => 'required|string',
+            'amount' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+        ]);
+
+        $transaction->update($validated);
+
+        return redirect()->route('transactions.index')->with('success', 'transaction updated');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Transaction $transaction)
     {
-        //
+        $transaction->delete();
+
+        return redirect()->route('transaction.index')->with('success', ('transaction deleted'));
     }
 }

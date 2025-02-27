@@ -11,7 +11,7 @@
         </a>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm">
+    <div class="bg-white rounded-xl shadow-sm mx-20">
         @foreach($transactions as $transaction)
         <div class="flex items-center justify-between p-4 border-b">
             <div class="flex items-center">
@@ -20,7 +20,7 @@
                         @if($transaction->type === 'income')
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m3-2.818l-3 3-3-3" />
                         @else
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m3 2.818l-3-3-3 3" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4V20M12 4L8 8M12 4L16 8" />
                         @endif
                     </svg>
                 </div>

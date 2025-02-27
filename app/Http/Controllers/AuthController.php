@@ -29,6 +29,8 @@ class AuthController extends Controller
                 'invitation_code' => 'nullable|required_if:account_type,join_family|string'
             ]);
 
+            $family_id = null;
+
             Log::info('Validation passed');
 
             if ($request->account_type === 'join_family') {
@@ -39,14 +41,14 @@ class AuthController extends Controller
                 }
 
                 $family_id = $family->id;
-                $request->merge(['account_type' => 'family']);
+                // $request->merge(['account_type' => 'family']);
             }
 
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'account_type' => $request->account_type,
+                'account_type' => $request->account_type === 'join_family' ? 'family' : $request->account_type,
                 'family_id' => $family_id
             ]);
 
@@ -55,15 +57,21 @@ class AuthController extends Controller
             Auth::login($user);
             Log::info('User logged in');
 
-            if ($request->account_type === 'family' && !$family_id) {
-
-                Log::info('Redirecting to family creation');
-                return redirect()->route('family.create')->with('success', 'registration successful, create family account');
-            } elseif ($request->account_type === 'family' && $family_id) {
-
-                Log::info('Redirecting to familly dashboard');
-                return redirect()->route('family.index')->with('success', 'Joined family successfully');
+            if ($request->account_type === 'family') {
+                return redirect()->route('family.create');
+            } elseif ($request->account_type === 'join_family') {
+                return redirect()->route('family.index');
             }
+
+            // if ($request->account_type === 'family' && !$family_id) {
+
+            //     Log::info('Redirecting to family creation');
+            //     return redirect()->route('family.create')->with('success', 'registration successful, create family account');
+            // } elseif ($request->account_type === 'family' && $family_id) {
+
+            //     Log::info('Redirecting to familly dashboard');
+            //     return redirect()->route('family.index')->with('success', 'Joined family successfully');
+            // }
 
             Log::info('Redirection to profile');
             return redirect()->route('profile')->with('success', 'Registration successful');
