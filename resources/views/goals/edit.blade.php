@@ -33,7 +33,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
                     <select name="category" required
-                        class="w-full rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
+                        class="w-full p-2 rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
                         <option value="Savings" {{ $goal->category === 'Savings' ? 'selected' : '' }}>Savings</option>
                         <option value="Investment" {{ $goal->category === 'Investment' ? 'selected' : '' }}>Investment</option>
                         <option value="Debt Reduction" {{ $goal->category === 'Debt Reduction' ? 'selected' : '' }}>Debt Reduction</option>

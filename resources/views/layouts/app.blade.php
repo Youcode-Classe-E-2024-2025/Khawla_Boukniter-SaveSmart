@@ -26,12 +26,17 @@
                     <li><a href="{{ route('transactions.index') }}" class="text-white hover:text-emerald-200">Transactions</a></li>
                     <li><a href="{{ route('goals.index') }}" class="text-white hover:text-emerald-200">Budget Goals</a></li>
                     <li><a href="{{ route('statistics.index') }}" class="text-white hover:text-emerald-200">Reports</a></li>
-                    <li><a href="#" class="text-white hover:text-emerald-200">Family Members</a></li>
                 </ul>
             </div>
 
-            <div class="flex items-center">
-                <button class="text-white bg-emerald-700 hover:bg-emerald-800 focus:ring-4 focus:ring-emerald-300 font-medium rounded-lg text-sm px-4 py-2 text-center">Profile</button>
+            <div class="flex items-center space-x-4">
+
+                <form action="{{ route('logout') }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2 text-center">
+                        Logout
+                    </button>
+                </form>
             </div>
         </div>
     </nav>

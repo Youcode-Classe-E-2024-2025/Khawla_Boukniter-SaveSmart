@@ -21,16 +21,37 @@
                             class="w-full rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
                     </div>
 
+
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                        <select name="category" required
-                            class="w-full rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
-                            <option value="Savings">Savings</option>
-                            <option value="Investment">Investment</option>
-                            <option value="Debt Reduction">Debt Reduction</option>
-                            <option value="Emergency Fund">Emergency Fund</option>
-                            <option value="Major Purchase">Major Purchase</option>
-                        </select>
+                        <div class="flex items-center space-x-2">
+                            <select name="category" id="categorySelect" class="w-full p-2 rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
+                                <option value="Savings">Savings</option>
+                                <option value="Investment">Investment</option>
+                                <option value="Debt Reduction">Debt Reduction</option>
+                                <option value="Emergency Fund">Emergency Fund</option>
+                                <option value="Major Purchase">Major Purchase</option>
+
+                                @foreach($categories as $category)
+                                <option value="{{ $category->name }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+
+                            <button type="button" id="addCategoryBtn" class="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex-shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div id="newCategoryInput" class="hidden mt-2">
+                            <input type="text"
+                                name="newCategory"
+                                id="newCategory"
+                                class="w-full rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500"
+                                placeholder="Enter new category name">
+                        </div>
                     </div>
                 </div>
 
@@ -54,4 +75,43 @@
         </form>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const categorySelect = document.getElementById('categorySelect');
+        const newCategoryInput = document.getElementById('newCategoryInput');
+        const newCategoryField = document.getElementById('newCategory');
+        const addCategoryBtn = document.getElementById('addCategoryBtn');
+
+        addCategoryBtn.addEventListener('click', function() {
+            newCategoryInput.classList.remove('hidden');
+            categorySelect.disabled = true;
+            newCategoryField.focus();
+        });
+
+        newCategoryField.addEventListener('blur', function() {
+            if (this.value) {
+                fetch('/categories', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            name: this.value
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(category => {
+                        const option = new Option(category.name, category.name);
+                        categorySelect.add(option, categorySelect.length);
+                        categorySelect.value = category.name;
+                        newCategoryInput.classList.add('hidden');
+                    });
+            }
+        });
+    });
+</script>
 @endsection

@@ -12,7 +12,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                        <select name="type" class="w-full rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
+                        <select name="type" class="w-full p-2 rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
                             <option value="income" {{ $transaction->type === 'income' ? 'selected' : '' }}>Income</option>
                             <option value="expense" {{ $transaction->type === 'expense' ? 'selected' : '' }}>Expense</option>
                         </select>
@@ -21,7 +21,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
                         <div class="flex items-center space-x-2">
-                            <select name="category" id="categorySelect" class="w-full rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
+                            <select name="category" id="categorySelect" class="w-full p-2 rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
                                 @foreach($categories as $category)
                                 <option value="{{ $category->name }}" {{ $transaction->category === $category->name ? 'selected' : '' }}>
                                     {{ $category->name }}

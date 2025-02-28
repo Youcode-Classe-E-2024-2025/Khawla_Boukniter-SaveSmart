@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Goal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Category;
 
 class GoalController extends Controller
 {
@@ -24,7 +25,11 @@ class GoalController extends Controller
      */
     public function create()
     {
-        return view('goals.create');
+        $user = Auth::user();
+
+        $categories = Category::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->get();
+
+        return view('goals.create', ['categories' => $categories]);
     }
 
     /**

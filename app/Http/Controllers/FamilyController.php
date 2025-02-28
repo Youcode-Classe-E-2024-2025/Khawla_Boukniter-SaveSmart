@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Family;
 use App\Models\User;
+use App\Models\Transaction;
 
 class FamilyController extends Controller
 {
@@ -15,8 +16,16 @@ class FamilyController extends Controller
 
         $family_members = User::where('family_id', $user->family_id)->get();
 
+        $recentTransactions = Transaction::where(function ($query) use ($user) {
+            $query->where('user_id', $user->id)
+                ->orWhere('family_id', $user->family_id);
+        })->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
         return view('family.index', [
-            'familyMembers' => $family_members
+            'familyMembers' => $family_members,
+            'recentTransactions' => $recentTransactions
         ]);
     }
 
