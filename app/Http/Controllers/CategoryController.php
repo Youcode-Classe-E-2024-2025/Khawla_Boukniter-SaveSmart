@@ -42,6 +42,24 @@ class CategoryController extends Controller
         return response()->json($category, 201);
     }
 
+    public function getCategories()
+    {
+        $user = Auth::user();
+
+        $categories = Category::query();
+
+        if ($user->account_type === 'family') {
+            $categories->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('family_id', $user->family_id);
+            });
+        } else {
+            $categories->where('user_id', $user->id);
+        }
+
+        return $categories->get();
+    }
+
     /**
      * Display the specified resource.
      */

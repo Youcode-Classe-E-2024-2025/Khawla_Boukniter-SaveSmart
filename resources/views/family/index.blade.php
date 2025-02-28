@@ -30,8 +30,10 @@
                             </svg>
                         </div>
                         <div class="ml-4">
+                            <h3 class="font-medium text-gray-900">{{ $transaction->category }}</h3>
                             <p class="text-gray-800">{{ $transaction->description }}</p>
                             <p class="text-sm text-gray-500">{{ $transaction->created_at->format('d M, H:i') }}</p>
+                            <span class="text-sm text-emerald-600">by {{ $transaction->user->name }}</span>
                         </div>
                     </div>
                     <span class="{{ $transaction->type === 'income' ? 'text-green-600' : 'text-red-600' }}">

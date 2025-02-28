@@ -64,6 +64,8 @@
                 <div class="text-sm text-gray-600">
                     Due: {{ $goal->target_date->format('M d, Y') }}
                 </div>
+                <span class="text-sm text-emerald-600">by {{ $goal->user->name }}</span>
+
                 <div class="flex space-x-2">
                     <a href="{{ route('goals.edit', $goal) }}"
                         class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">

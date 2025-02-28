@@ -13,15 +13,29 @@ class StisticsController extends Controller
     {
         $user = Auth::user();
 
-        $monthlyStats = Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)
-            ->selectRaw('EXTRACT(MONTH FROM created_at) as month, type, SUM(amount) as total')
-            ->groupBy('month', 'type')->get();
+        $query = Transaction::query();
 
-        $categoryStats = Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)
-            ->where('type', 'expense')
+        if ($user->account_type === 'family') {
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                    ->orWhere('family_id', $user->family_id);
+            });
+        } else {
+            $query->where('user_id', $user->id);
+        }
+
+        $monthlyStats = $query->selectRaw('EXTRACT(MONTH FROM created_at) as month, type, SUM(amount) as total')
+            ->groupBy('month', 'type')
+            ->get();
+
+        $categoryStats = $query->where('type', 'expense')
             ->selectRaw('category, SUM(amount) as total')
-            ->groupBy('category')->get();
+            ->groupBy('category')
+            ->get();
 
-        return view('statistics.index', ['monthlyStats' => $monthlyStats, 'categoryStats' => $categoryStats]);
+        return view('statistics.index', [
+            'monthlyStats' => $monthlyStats,
+            'categoryStats' => $categoryStats
+        ]);
     }
 }

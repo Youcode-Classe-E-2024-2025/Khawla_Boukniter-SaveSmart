@@ -21,6 +21,8 @@ Route::post('/register', [AuthController::class, 'register'])->name('register');
 
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [AuthController::class, 'profile'])->name('auth.profile');
+
     Route::get('/family/create', [FamilyController::class, 'create'])->name('family.create');
     Route::post('/family/store', [FamilyController::class, 'store'])->name('family.store');
     Route::get('/family/index', [FamilyController::class, 'index'])->name('family.index');
@@ -32,8 +34,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/categories', [CategoryController::class, 'store']);
 
     Route::get('/statistics', [StisticsController::class, 'index'])->name('statistics.index');
+
+    Route::put('/profile/update', [AuthController::class, 'updateProfile'])->name('profile.update');
 });
 
-Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

@@ -15,9 +15,21 @@ class GoalController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $goals = Goal::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->latest()->get();
 
-        return view('goals.index', ['goals' => $goals]);
+        $goals = Goal::query();
+
+        if ($user->account_type === 'family') {
+            $goals->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('family_id', $user->family_id);
+            });
+        } else {
+            $goals->where('user_id', $user->id);
+        }
+
+        $goals = $goals->orderBy('created_at', 'desc')->get();
+
+        return view('goals.index', compact('goals'));
     }
 
     /**
@@ -27,7 +39,7 @@ class GoalController extends Controller
     {
         $user = Auth::user();
 
-        $categories = Category::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->get();
+        $categories = app(CategoryController::class)->getCategories();
 
         return view('goals.create', ['categories' => $categories]);
     }
@@ -68,6 +80,8 @@ class GoalController extends Controller
      */
     public function edit(Goal $goal)
     {
+        $categories = app(CategoryController::class)->getCategories();
+
         return view('goals.edit', ['goal' => $goal]);
     }
 

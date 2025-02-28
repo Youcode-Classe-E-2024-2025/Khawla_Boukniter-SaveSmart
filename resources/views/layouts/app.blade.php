@@ -22,7 +22,13 @@
 
             <div class="hidden w-full md:block md:w-auto">
                 <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 md:flex-row md:space-x-8 rtl:space-x-reverse">
-                    <li><a href="{{ route('family.index') }}" class="text-white hover:text-emerald-200">Dashboard</a></li>
+                    @auth
+                    <li><a href="{{ Auth::user()->account_type === 'family' ? route('family.index') : route('auth.profile') }}" class="text-white hover:text-emerald-200">Dashboard</a></li>
+                    @else
+                    <a href="{{ route('login') }}" class="text-white hover:text-emerald-200">
+                        Dashboard
+                    </a>
+                    @endauth
                     <li><a href="{{ route('transactions.index') }}" class="text-white hover:text-emerald-200">Transactions</a></li>
                     <li><a href="{{ route('goals.index') }}" class="text-white hover:text-emerald-200">Budget Goals</a></li>
                     <li><a href="{{ route('statistics.index') }}" class="text-white hover:text-emerald-200">Reports</a></li>

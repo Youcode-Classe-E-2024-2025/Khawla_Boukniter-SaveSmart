@@ -16,9 +16,20 @@ class TransactionController extends Controller
     {
         $user = Auth::user();
 
-        $transactions = Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->latest()->get();
+        $transactions = Transaction::query();
 
-        return view('transactions.index', ['transactions' => $transactions]);
+        if ($user->account_type === 'family') {
+            $transactions->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('family_id', $user->family_id);
+            });
+        } else {
+            $transactions->where('user_id', $user->id);
+        }
+
+        $transactions = $transactions->orderBy('created_at', 'desc')->get();
+
+        return view('transactions.index', compact('transactions'));
     }
 
     /**
@@ -28,7 +39,7 @@ class TransactionController extends Controller
     {
         $user = Auth::user();
 
-        $categories = Category::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->get();
+        $categories = app(CategoryController::class)->getCategories();
 
         return view('transactions.create', ['categories' => $categories]);
     }
@@ -73,7 +84,7 @@ class TransactionController extends Controller
      */
     public function edit(Transaction $transaction)
     {
-        $categories = Category::where('user_id', Auth::id())->orWhere('family_id', Auth::user()->family_id)->get();
+        $categories = app(CategoryController::class)->getCategories();
 
         return view('transactions.edit', ['transaction' => $transaction, 'categories' => $categories]);
     }

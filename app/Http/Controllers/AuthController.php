@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use App\Models\Family;
+use App\Models\Transaction;
+use App\Models\Goal;
 
 class AuthController extends Controller
 {
@@ -74,7 +76,7 @@ class AuthController extends Controller
             // }
 
             Log::info('Redirection to profile');
-            return redirect()->route('profile')->with('success', 'Registration successful');
+            return redirect()->route('auth.profile')->with('success', 'Registration successful');
         } catch (\Exception $e) {
             Log::error('Registration failed', [
                 'error' => $e->getMessage(),
@@ -98,7 +100,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($request->only('email', 'password'))) {
             if (Auth::user()->account_type === 'personal') {
-                return redirect()->route('profile')->with('success', 'login successful');
+                return redirect()->route('auth.profile')->with('success', 'login successful');
             } elseif (Auth::user()->account_type === 'family') {
                 return redirect()->route('family.index')->with('success', 'Redirecting to familly dashboard');
             }
@@ -119,6 +121,26 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        return view('auth.profile');
+        $totalTransactions = Transaction::where('user_id', $user->id)->count();
+        $activeGoals = Goal::where('user_id', $user->id)->count();
+
+        return view('auth.profile', [
+            'totalTransactions' => $totalTransactions,
+            'activeGoals' => $activeGoals,
+        ]);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'name' => 'required|string',
+            'budget_method' => 'required|string'
+        ]);
+
+        $user->update($validated);
+
+        redirect()->route('profile')->with('success', 'profile updated');
     }
 }

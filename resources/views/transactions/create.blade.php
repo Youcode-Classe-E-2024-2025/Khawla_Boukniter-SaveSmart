@@ -22,6 +22,11 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
                         <div class="flex items-center space-x-2">
                             <select name="category" id="categorySelect" class="w-full p-2 rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
+                                <option value="Savings">Savings</option>
+                                <option value="Investment">Investment</option>
+                                <option value="Debt Reduction">Debt Reduction</option>
+                                <option value="Emergency Fund">Emergency Fund</option>
+                                <option value="Major Purchase">Major Purchase</option>
                                 @foreach($categories as $category)
                                 <option value="{{ $category->name }}">{{ $category->name }}</option>
                                 @endforeach

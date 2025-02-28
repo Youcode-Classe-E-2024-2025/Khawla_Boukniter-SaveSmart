@@ -45,6 +45,7 @@
                             {{ $transaction->type === 'income' ? '+' : '-' }}{{ number_format($transaction->amount, 2) }} MAD
                         </p>
                         <p class="text-sm text-gray-500">{{ $transaction->created_at->format('M d, Y') }}</p>
+                        <span class="text-sm text-emerald-600">by {{ $transaction->user->name }}</span>
                     </div>
 
                     <div class="flex items-center space-x-3">
