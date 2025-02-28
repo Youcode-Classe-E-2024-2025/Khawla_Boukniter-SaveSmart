@@ -20,7 +20,7 @@ class FamilyController extends Controller
             $query->where('user_id', $user->id)
                 ->orWhere('family_id', $user->family_id);
         })->orderBy('created_at', 'desc')
-            ->take(5)
+            ->take(3)
             ->get();
 
         return view('family.index', [
