@@ -23,8 +23,7 @@ class CategoryTest extends TestCase
         ]);
 
         $response->assertStatus(201);
-        $response->assertRedirect(route('transactions'));
-        $response->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('categories', [
             'name' => 'category test',
             'user_id' => $user->id,
             'family_id' => $user->family_id,

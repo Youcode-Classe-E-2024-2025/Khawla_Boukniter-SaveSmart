@@ -39,7 +39,7 @@ class CategoryController extends Controller
             'family_id' => Auth::user()->family_id,
         ]);
 
-        return response()->json($category);
+        return response()->json($category, 201);
     }
 
     /**

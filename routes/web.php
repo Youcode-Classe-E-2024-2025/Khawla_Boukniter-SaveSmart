@@ -28,7 +28,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('goals', GoalController::class);
 
-    Route::post('/categories', [CategoryController::class, 'store']);
+    Route::resource('categories', CategoryController::class);
 });
 
 Route::get('/profile', [AuthController::class, 'profile'])->name('profile');

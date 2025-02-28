@@ -80,7 +80,7 @@
 
         newCategoryField.addEventListener('blur', function() {
             if (this.value) {
-                fetch('/categories', {
+                fetch('/categories.store', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
