@@ -79,6 +79,7 @@
 
         addCategoryBtn.addEventListener('click', function() {
             newCategoryInput.classList.remove('hidden');
+            categorySelect.value = '';
             categorySelect.disabled = true;
             newCategoryField.focus();
         });

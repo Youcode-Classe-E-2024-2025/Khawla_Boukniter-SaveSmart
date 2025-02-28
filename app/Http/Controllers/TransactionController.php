@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Transaction;
 use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class TransactionController extends Controller
 {
@@ -49,17 +50,27 @@ class TransactionController extends Controller
      */
     public function store(Request $request)
     {
+        Log::info('Transaction Request Data:', [
+            'all' => $request->all(),
+            'category' => $request->category,
+            'newCategory' => $request->newCategory,
+            'type' => $request->type,
+            'amount' => $request->amount
+        ]);
+
         $validated = $request->validate([
             'type' => 'required|in:income,expense',
-            'category' => 'required_without:newCategory|string',
-            'newCategory' => 'required_without:category|string',
+            'category' => 'required_if:newCategory,null|string',
+            'newCategory' => 'required_if:category,null|string|nullable',
             'amount' => 'required|numeric|min:0',
             'description' => 'nullable|string',
         ]);
 
+        Log::info('Validated Data:', $validated);
+
         $category = $request->category ?: $request->newCategory;
 
-        $transactions = Transaction::create([
+        $transaction = Transaction::create([
             'user_id' => Auth::id(),
             'family_id' => Auth::user()->family_id,
             'type' => $validated['type'],
@@ -67,6 +78,8 @@ class TransactionController extends Controller
             'amount' => $validated['amount'],
             'description' => $validated['description'],
         ]);
+
+        Log::info('Created Transaction:', $transaction->toArray());
 
         return redirect()->route('transactions.index')->with('success', 'Transaction added');
     }
