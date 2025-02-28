@@ -6,6 +6,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FamilyController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\StisticsController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -28,7 +29,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('goals', GoalController::class);
 
-    Route::resource('categories', CategoryController::class);
+    Route::post('/categories', [CategoryController::class, 'store']);
+
+    Route::get('/statistics', [StisticsController::class, 'index'])->name('statistics.index');
 });
 
 Route::get('/profile', [AuthController::class, 'profile'])->name('profile');

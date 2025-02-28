@@ -80,7 +80,7 @@
 
         newCategoryField.addEventListener('blur', function() {
             if (this.value) {
-                fetch('/categories.store', {
+                fetch('/categories', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -95,11 +95,8 @@
                         const option = new Option(category.name, category.name);
                         categorySelect.add(option, categorySelect.length);
                         categorySelect.value = category.name;
-                        categorySelect.disabled = false;
                         newCategoryInput.classList.add('hidden');
                     });
-            } else {
-                categorySelect.disabled = false;
             }
         });
     });

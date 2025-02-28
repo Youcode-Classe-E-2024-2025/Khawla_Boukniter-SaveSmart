@@ -25,7 +25,7 @@
                     <li><a href="{{ route('family.index') }}" class="text-white hover:text-emerald-200">Dashboard</a></li>
                     <li><a href="{{ route('transactions.index') }}" class="text-white hover:text-emerald-200">Transactions</a></li>
                     <li><a href="{{ route('goals.index') }}" class="text-white hover:text-emerald-200">Budget Goals</a></li>
-                    <li><a href="#" class="text-white hover:text-emerald-200">Reports</a></li>
+                    <li><a href="{{ route('statistics.index') }}" class="text-white hover:text-emerald-200">Reports</a></li>
                     <li><a href="#" class="text-white hover:text-emerald-200">Family Members</a></li>
                 </ul>
             </div>
