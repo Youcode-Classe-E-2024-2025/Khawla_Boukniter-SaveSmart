@@ -3,14 +3,15 @@
 @section('content')
 
 <div class="container mx-auto px-4 py-8">
-    <!-- Header Section -->
+    <div class="mb-8 bg-gradient-to-r from-emerald-600 to-teal-500 p-8 rounded-xl text-white">
+        <h2 class="text-3xl font-bold mb-2">Transactions</h2>
+        <p class="text-emerald-100">Manage your financial activities</p>
+    </div>
+
     <div class="flex justify-between items-center mb-8">
-        <div>
-            <h2 class="text-2xl font-light text-gray-800">Transactions</h2>
-            <p class="text-gray-600">Manage your financial activities</p>
-        </div>
+
         <a href="{{ route('transactions.create') }}"
-            class="inline-flex items-center px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors">
+            class="inline-flex ml-auto items-center px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
