@@ -23,6 +23,7 @@ class User extends Authenticatable
         'password',
         'account_type',
         'family_id',
+        'budget_method'
     ];
 
     /**

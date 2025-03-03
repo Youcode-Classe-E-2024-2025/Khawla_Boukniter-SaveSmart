@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('type')->check("type in ('needs', 'wants', 'savings', 'income')");
             $table->foreignId('user_id')->nullable()->constrained();
             $table->foreignId('family_id')->nullable()->constrained();
             $table->timestamps();

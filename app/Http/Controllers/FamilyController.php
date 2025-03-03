@@ -23,9 +23,12 @@ class FamilyController extends Controller
             ->take(3)
             ->get();
 
+        $budgetData = Transaction::getBudgetAnalysis($user->id, $user->family_id);
+
         return view('family.index', [
             'familyMembers' => $family_members,
-            'recentTransactions' => $recentTransactions
+            'recentTransactions' => $recentTransactions,
+            'budgetData' => $budgetData
         ]);
     }
 
@@ -55,6 +58,43 @@ class FamilyController extends Controller
         return redirect()->route('family.index')->with([
             'success' => 'family created successfully',
             'invitation_code' => $family->invitation_code
+        ]);
+    }
+
+    public function updateBudgetMethod(Request $request)
+    {
+        $user = Auth::user();
+
+        $user->update([
+            'budget_method' => $request->budget_method
+        ]);
+
+        $income = Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'income')->sum('amount');
+
+        $budget = [
+            'needs' => $income * 0.5,
+            'wants' => $income * 0.3,
+            'savings' => $income * 0.2,
+        ];
+
+        $spending = [
+            'needs' => Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'expense')->whereHas('category', function ($query) {
+                $query->where('type', 'needs');
+            })->sum('amount'),
+
+            'savings' => Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'expense')->whereHas('category', function ($query) {
+                $query->where('type', 'needs');
+            })->sum('amount'),
+
+            'wants' => Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'expense')->whereHas('category', function ($query) {
+                $query->where('type', 'wants');
+            })->sum('amount'),
+        ];
+
+        return view('family.budget', [
+            'budget' => $budget,
+            'spending' => $spending,
+            'income' => $income
         ]);
     }
 }

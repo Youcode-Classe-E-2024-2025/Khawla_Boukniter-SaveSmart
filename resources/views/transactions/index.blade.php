@@ -34,7 +34,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="font-medium text-gray-900">{{ $transaction->category }}</h3>
+                        <h3 class="font-medium text-gray-900">{{ $transaction->category->name }}</h3>
+                        <p class="text-sm text-gray-500">Type: {{ ucfirst($transaction->category->type) }}</p>
                         <p class="text-sm text-gray-500">{{ $transaction->description }}</p>
                     </div>
                 </div>

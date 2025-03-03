@@ -13,6 +13,7 @@ class Family extends Model
         'name',
         'owner_id',
         'invitation_code',
+        'budget_method'
     ];
 
     public function members()

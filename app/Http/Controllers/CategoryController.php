@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class CategoryController extends Controller
 {
@@ -29,18 +30,42 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string'
-        ]);
+        Log::info('Raw request data:', $request->all());
+        Log::info('Request headers:', $request->headers->all());
 
-        $category = Category::create([
-            'name' => $validated['name'],
-            'user_id' => Auth::id(),
-            'family_id' => Auth::user()->family_id,
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string',
+                'type' => 'required|in:needs,wants,savings,income'
+            ]);
 
-        return response()->json($category, 201);
+            Log::info('Validation passed:', $validated);
+
+            $category = Category::create([
+                'name' => $validated['name'],
+                'type' => $validated['type'],
+                'user_id' => Auth::id(),
+                'family_id' => Auth::user()->family_id
+            ]);
+
+            Log::info('Category created:', $category->toArray());
+
+            return response()->json($category, 201);
+        } catch (\Exception $e) {
+            Log::error('Detailed error:', [
+                'message' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to create category',
+                'message' => $e->getMessage()
+            ], 422);
+        }
     }
+
 
     public function getCategories()
     {

@@ -6,7 +6,8 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FamilyController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\TransactionController;
-use App\Http\Controllers\StisticsController;
+use App\Http\Controllers\StatisticsController;
+use App\Http\Controllers\BudgetController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -33,9 +34,13 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/categories', [CategoryController::class, 'store']);
 
-    Route::get('/statistics', [StisticsController::class, 'index'])->name('statistics.index');
+    Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics.index');
 
     Route::put('/profile/update', [AuthController::class, 'updateProfile'])->name('profile.update');
+
+    Route::post('/family/budget-method', [FamilyController::class, 'updateBudgetMethod'])->name('family.updateBudgetMethod');
+    // Route::get('/family/budget', [FamilyController::class, 'budgetAnalys'])->name('family.budgetAnalys');
+    Route::get('/budget/analysis', [BudgetController::class, 'analysis'])->name('budget.analysis');
 });
 
 

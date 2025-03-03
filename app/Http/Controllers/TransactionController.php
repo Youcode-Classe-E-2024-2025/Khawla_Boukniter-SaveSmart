@@ -50,39 +50,67 @@ class TransactionController extends Controller
      */
     public function store(Request $request)
     {
-        Log::info('Transaction Request Data:', [
-            'all' => $request->all(),
-            'category' => $request->category,
-            'newCategory' => $request->newCategory,
-            'type' => $request->type,
-            'amount' => $request->amount
-        ]);
-
-        $validated = $request->validate([
+        $rules = [
             'type' => 'required|in:income,expense',
-            'category' => 'required_if:newCategory,null|string',
-            'newCategory' => 'required_if:category,null|string|nullable',
             'amount' => 'required|numeric|min:0',
             'description' => 'nullable|string',
-        ]);
+            'newCategory' => $request->category_id ? 'nullable' : 'required|string',
+            'category_id' => $request->newCategory ? 'nullable' : 'required|exists:categories,id',
+        ];
 
-        Log::info('Validated Data:', $validated);
+        if ($request->type === 'expense') {
+            $rules['category_type'] = $request->newCategory ? 'required|in:needs,wants,savings' : 'nullable';
+        }
 
-        $category = $request->category ?: $request->newCategory;
+        $validated = $request->validate($rules);
 
+        if ($request->type === 'expense') {
+            $user = Auth::user();
+            $budgetData = Transaction::getBudgetAnalysis($user->id, $user->family_id);
+
+            $categoryType = $request->newCategory ? $request->category_type : Category::find($request->category_id)->type;
+
+            $remainingBudget = [
+                'needs' => $budgetData['targets']['needs'] - $budgetData['actual']['needs'],
+                'wants' => $budgetData['targets']['wants'] - $budgetData['actual']['wants'],
+                'savings' => $budgetData['targets']['savings'] - $budgetData['actual']['savings']
+            ];
+
+            if ($validated['amount'] > $remainingBudget[$categoryType]) {
+                return back()->withErrors([
+                    'amount' => "Transaction exceeds your {$categoryType} budget. Maximum available: {$remainingBudget[$categoryType]} MAD"
+                ])->withInput();
+            }
+        }
+
+        // Handle new category creation
+        if ($request->newCategory) {
+            $category = Category::create([
+                'name' => $request->newCategory,
+                'type' => $request->type === 'income' ? 'income' : $request->category_type,
+                'user_id' => Auth::id(),
+                'family_id' => Auth::user()->family_id
+            ]);
+            $categoryId = $category->id;
+        } else {
+            $categoryId = $request->category_id;
+        }
+
+        // Create transaction
         $transaction = Transaction::create([
             'user_id' => Auth::id(),
             'family_id' => Auth::user()->family_id,
             'type' => $validated['type'],
-            'category' => $category,
+            'category_id' => $categoryId,
             'amount' => $validated['amount'],
-            'description' => $validated['description'],
+            'description' => $validated['description']
         ]);
-
-        Log::info('Created Transaction:', $transaction->toArray());
 
         return redirect()->route('transactions.index')->with('success', 'Transaction added');
     }
+
+
+
 
     /**
      * Display the specified resource.
@@ -109,7 +137,7 @@ class TransactionController extends Controller
     {
         $validated = $request->validate([
             'type' => 'required|in:income,expense',
-            'category' => 'required|string',
+            'category_id' => 'required|string',
             'amount' => 'required|numeric|min:0',
             'description' => 'nullable|string',
         ]);
