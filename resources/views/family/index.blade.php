@@ -133,6 +133,8 @@
             </form>
         </div>
 
+
+        @if (Auth::user()->budget_method === '50-30-20')
         <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-light text-gray-800">Budget Status</h3>
@@ -166,6 +168,8 @@
                 @endforeach
             </div>
         </div>
+        @endif
+
 
 
 

@@ -23,12 +23,10 @@ class FamilyController extends Controller
             ->take(3)
             ->get();
 
-        $budgetData = Transaction::getBudgetAnalysis($user->id, $user->family_id);
 
         return view('family.index', [
             'familyMembers' => $family_members,
             'recentTransactions' => $recentTransactions,
-            'budgetData' => $budgetData
         ]);
     }
 
@@ -91,10 +89,25 @@ class FamilyController extends Controller
             })->sum('amount'),
         ];
 
-        return view('family.budget', [
+        $family_members = User::where('family_id', $user->family_id)->get();
+
+        $recentTransactions = Transaction::where(function ($query) use ($user) {
+            $query->where('user_id', $user->id)
+                ->orWhere('family_id', $user->family_id);
+        })->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get();
+
+        $budgetData = Transaction::getBudgetAnalysis($user->id, $user->family_id);
+
+
+        return view('family.index', [
             'budget' => $budget,
             'spending' => $spending,
-            'income' => $income
+            'income' => $income,
+            'familyMembers' => $family_members,
+            'recentTransactions' => $recentTransactions,
+            'budgetData' => $budgetData
         ]);
     }
 }
