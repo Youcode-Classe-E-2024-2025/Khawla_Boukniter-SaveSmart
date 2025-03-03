@@ -45,13 +45,18 @@
                         <div class="h-full bg-emerald-500 rounded-full"
                             style="width: {{ ($goal->current_amount / $goal->target_amount) * 100 }}%">
                         </div>
+                        <span>{{ number_format(($goal->current_amount / $goal->target_amount) * 100, 1) }}% Complete</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 text-sm">
+                <div class="grid grid-cols-3 gap-4 text-sm">
                     <div>
                         <span class="text-gray-600">Current</span>
                         <p class="font-medium text-gray-900">{{ number_format($goal->current_amount, 2) }} MAD</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-600">Remaining</span>
+                        <p class="font-medium text-gray-900">{{ number_format($goal->target_amount - $goal->current_amount, 2) }} MAD</p>
                     </div>
                     <div>
                         <span class="text-gray-600">Target</span>
@@ -62,7 +67,7 @@
 
             <div class="flex items-center justify-between pt-4 border-t border-gray-100">
                 <div class="text-sm text-gray-600">
-                    Due: {{ $goal->target_date->format('M d, Y') }}
+                    <p>Due: {{ $goal->target_date->format('M d, Y') }}</p>
                 </div>
                 <span class="text-sm text-emerald-600">by {{ $goal->user->name }}</span>
 
