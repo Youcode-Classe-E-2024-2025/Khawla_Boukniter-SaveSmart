@@ -50,6 +50,14 @@ class TransactionController extends Controller
      */
     public function store(Request $request)
     {
+        Log::info('Transaction Request Data:', [
+            'all' => $request->all(),
+            'category_id' => $request->category_id,
+            'newCategory' => $request->newCategory,
+            'type' => $request->type,
+            'category_type' => $request->category_type
+        ]);
+
         $rules = [
             'type' => 'required|in:income,expense',
             'amount' => 'required|numeric|min:0',
@@ -66,24 +74,48 @@ class TransactionController extends Controller
 
         if ($request->type === 'expense') {
             $user = Auth::user();
-            $budgetData = Transaction::getBudgetAnalysis($user->id, $user->family_id);
 
-            $categoryType = $request->newCategory ? $request->category_type : Category::find($request->category_id)->type;
+            if ($user->budget_method === '50/30/20') {
+                $budgetData = Transaction::getBudgetAnalysis($user->id, $user->family_id);
+                $categoryType = $request->newCategory ? $request->category_type : Category::find($request->category_id)->type;
 
-            $remainingBudget = [
-                'needs' => $budgetData['targets']['needs'] - $budgetData['actual']['needs'],
-                'wants' => $budgetData['targets']['wants'] - $budgetData['actual']['wants'],
-                'savings' => $budgetData['targets']['savings'] - $budgetData['actual']['savings']
-            ];
+                $remainingBudget = [
+                    'needs' => $budgetData['targets']['needs'] - $budgetData['actual']['needs'],
+                    'wants' => $budgetData['targets']['wants'] - $budgetData['actual']['wants'],
+                    'savings' => $budgetData['targets']['savings'] - $budgetData['actual']['savings']
+                ];
 
-            if ($validated['amount'] > $remainingBudget[$categoryType]) {
-                return back()->withErrors([
-                    'amount' => "Transaction exceeds your {$categoryType} budget. Maximum available: {$remainingBudget[$categoryType]} MAD"
-                ])->withInput();
+                if ($validated['amount'] > $remainingBudget[$categoryType]) {
+                    return back()->withErrors([
+                        'amount' => "Transaction exceeds your {$categoryType} budget. Maximum available: {$remainingBudget[$categoryType]} MAD"
+                    ])->withInput();
+                }
+            } else {
+                $totalIncome = Transaction::where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id)
+                        ->orWhere('family_id', $user->family_id);
+                })
+                    ->where('type', 'income')
+                    ->whereMonth('created_at', now()->month)
+                    ->sum('amount');
+
+                $totalExpenses = Transaction::where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id)
+                        ->orWhere('family_id', $user->family_id);
+                })
+                    ->where('type', 'expense')
+                    ->whereMonth('created_at', now()->month)
+                    ->sum('amount');
+
+                if (($totalExpenses + $validated['amount']) > $totalIncome) {
+                    $remaining = $totalIncome - $totalExpenses;
+                    return back()->withErrors([
+                        'amount' => "Transaction exceeds your available income. Maximum available: {$remaining} MAD"
+                    ])->withInput();
+                }
             }
         }
 
-        // Handle new category creation
         if ($request->newCategory) {
             $category = Category::create([
                 'name' => $request->newCategory,
@@ -96,7 +128,6 @@ class TransactionController extends Controller
             $categoryId = $request->category_id;
         }
 
-        // Create transaction
         $transaction = Transaction::create([
             'user_id' => Auth::id(),
             'family_id' => Auth::user()->family_id,
@@ -108,6 +139,7 @@ class TransactionController extends Controller
 
         return redirect()->route('transactions.index')->with('success', 'Transaction added');
     }
+
 
 
 

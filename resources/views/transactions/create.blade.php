@@ -59,7 +59,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Amount</label>
-                    <input type="number" name="amount" step="0.01" class="w-full rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
+                    <input type="number" name="amount" step="0.01" value="{{ $transaction->amount }}" class="w-full rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
                 </div>
 
                 <div>
@@ -89,37 +89,62 @@
         const categoryTypeSelect = document.getElementById('categoryType');
         const categoryTypeDiv = document.getElementById('categoryTypeDiv');
 
+        console.log('Initial state:', {
+            categorySelect: categorySelect.value,
+            newCategoryField: newCategoryField.value,
+            typeSelect: typeSelect.value,
+            categoryTypeSelect: categoryTypeSelect.value
+        });
 
         function toggleCategoryType() {
+            console.log('Toggling category type', {
+                transactionType: typeSelect.value,
+                categorySelectValue: categorySelect.value
+            });
+
             if (typeSelect.value === 'income') {
                 categoryTypeDiv.classList.add('hidden');
                 categoryTypeSelect.removeAttribute('required');
+                if (newCategoryInput.classList.contains('hidden')) {
+                    categorySelect.removeAttribute('required');
+                }
             } else {
-                categoryTypeDiv.classList.remove('hidden');
-                categoryTypeSelect.setAttribute('required', 'required');
+                if (!categorySelect.value && !newCategoryInput.classList.contains('hidden')) {
+                    categoryTypeDiv.classList.remove('hidden');
+                    categoryTypeSelect.setAttribute('required', 'required');
+                }
             }
         }
 
         toggleCategoryType();
         typeSelect.addEventListener('change', toggleCategoryType);
-        addCategoryBtn.addEventListener('click', toggleCategoryType);
-
 
         addCategoryBtn.addEventListener('click', function() {
+            console.log('Add category button clicked');
             newCategoryInput.classList.remove('hidden');
             categorySelect.value = '';
             categorySelect.disabled = true;
+            categorySelect.removeAttribute('required');
+            newCategoryField.setAttribute('required', 'required');
+            if (typeSelect.value === 'expense') {
+                categoryTypeDiv.classList.remove('hidden');
+                categoryTypeSelect.setAttribute('required', 'required');
+            }
             newCategoryField.focus();
         });
 
         saveCategoryBtn.addEventListener('click', function() {
+            console.log('Save category button clicked', {
+                newCategoryValue: newCategoryField.value,
+                type: typeSelect.value,
+                categoryType: categoryTypeSelect.value
+            });
+
             if (newCategoryField.value) {
                 const categoryData = {
                     name: newCategoryField.value,
                     type: typeSelect.value === 'income' ? 'income' : categoryTypeSelect.value,
                 };
-
-                console.log('Sending category data:', categoryData);
 
                 fetch('/categories', {
                         method: 'POST',
@@ -130,6 +155,7 @@
                         body: JSON.stringify(categoryData)
                     })
                     .then(response => {
+                        console.log('Category creation response:', response);
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
                         }
@@ -141,8 +167,14 @@
                         categorySelect.add(option, categorySelect.length);
                         categorySelect.value = category.id;
                         categorySelect.disabled = false;
+                        categorySelect.setAttribute('required', 'required');
                         newCategoryInput.classList.add('hidden');
                         newCategoryField.value = '';
+                        newCategoryField.removeAttribute('required');
+                        if (typeSelect.value === 'expense') {
+                            categoryTypeDiv.classList.add('hidden');
+                            categoryTypeSelect.removeAttribute('required');
+                        }
                     })
                     .catch(error => {
                         console.error('Error:', error);
@@ -150,6 +182,30 @@
                     });
             }
         });
+
+        categorySelect.addEventListener('change', function() {
+            console.log('Category selected:', this.value);
+            if (this.value) {
+                categoryTypeDiv.classList.add('hidden');
+                categoryTypeSelect.removeAttribute('required');
+            }
+        });
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Form submission started', {
+                categorySelect: categorySelect.value,
+                newCategory: newCategoryField.value,
+                type: typeSelect.value,
+                categoryType: categoryTypeSelect.value
+            });
+
+            const formData = new FormData(this);
+            console.log('Form Data:', Object.fromEntries(formData));
+
+            this.submit();
+        });
     });
 </script>
+
 @endsection

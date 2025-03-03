@@ -133,31 +133,41 @@
             </form>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <h3 class="text-xl font-medium mb-4">Budget Status</h3>
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-light text-gray-800">Budget Status</h3>
+                <div class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg text-sm">
+                    {{ number_format($budgetData['totalIncome'], 2) }} MAD
+                </div>
+            </div>
+
             <div class="space-y-4">
-                @foreach(['needs', 'wants', 'savings'] as $category)
-                <div>
-                    <div class="flex justify-between text-sm mb-2">
-                        <span class="capitalize">{{ $category }}</span>
-                        <span>
-                            {{ $budgetData['targets'][$category] > 0 
-                    ? number_format(($budgetData['actual'][$category] / $budgetData['targets'][$category]) * 100, 1) 
-                    : 0 }}%
+                @foreach(['needs' => '50%', 'wants' => '30%', 'savings' => '20%'] as $category => $percentage)
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <span class="capitalize text-gray-800">{{ $category }}</span>
+                            <span class="text-xs text-gray-500 ml-1">({{ $percentage }})</span>
+                        </div>
+                        <span class="text-sm font-medium {{ ($budgetData['actual'][$category] / $budgetData['targets'][$category]) * 100 > 100 ? 'text-red-600' : 'text-emerald-600' }}">
+                            {{ number_format(($budgetData['actual'][$category] / $budgetData['targets'][$category]) * 100, 1) }}%
                         </span>
                     </div>
-                    <div class="h-2 bg-gray-200 rounded-full">
-                        <div class="h-2 {{ $budgetData['actual'][$category] > $budgetData['targets'][$category] ? 'bg-red-500' : 'bg-emerald-500' }} rounded-full"
-                            style="width: {{ $budgetData['targets'][$category] > 0 
-                    ? min(($budgetData['actual'][$category] / $budgetData['targets'][$category]) * 100, 100) 
-                    : 0 }}%">
+                    <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full transition-all duration-300 rounded-full {{ ($budgetData['actual'][$category] / $budgetData['targets'][$category]) * 100 > 100 ? 'bg-red-500' : 'bg-emerald-500' }}"
+                            style="width: {{ min(($budgetData['actual'][$category] / $budgetData['targets'][$category]) * 100, 100) }}%">
                         </div>
+                    </div>
+                    <div class="flex justify-between mt-1 text-xs text-gray-500">
+                        <span>{{ number_format($budgetData['actual'][$category], 2) }}</span>
+                        <span>{{ number_format($budgetData['targets'][$category], 2) }}</span>
                     </div>
                 </div>
                 @endforeach
-
             </div>
         </div>
+
+
 
 
 

@@ -21,13 +21,14 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
                         <div class="flex items-center space-x-2">
-                            <select name="category" id="categorySelect" class="w-full p-2 rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
+                            <select name="category_id" id="categorySelect" class="w-full p-2 rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
                                 @foreach($categories as $category)
-                                <option value="{{ $category->name }}" {{ $transaction->category === $category->name ? 'selected' : '' }}>
+                                <option value="{{ $category->id }}" {{ $transaction->category_id == $category->id ? 'selected' : '' }}>
                                     {{ $category->name }}
                                 </option>
                                 @endforeach
                             </select>
+
                             <button type="button" id="addCategoryBtn" class="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 flex-shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -35,8 +36,24 @@
                             </button>
                         </div>
                         <div id="newCategoryInput" class="hidden mt-2">
-                            <input type="text" id="newCategory" class="w-full rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500"
+                            <input type="text"
+                                name="newCategory"
+                                id="newCategory"
+                                class="w-full rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500"
                                 placeholder="Enter new category name">
+
+                            <div id="categoryTypeDiv">
+                                <label for="categoryType" class="block text-sm font-medium text-gray-700">Category Type</label>
+                                <select id="categoryType" name="category_type" class="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm">
+                                    <option value="needs">Needs</option>
+                                    <option value="wants">Wants</option>
+                                    <option value="savings">Savings</option>
+                                </select>
+                            </div>
+
+                            <button type="button" id="saveCategoryBtn" class="w-full mt-2 bg-emerald-500 text-white py-2 px-4 rounded-lg hover:bg-emerald-600">
+                                Save Category
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -69,36 +86,126 @@
         const newCategoryInput = document.getElementById('newCategoryInput');
         const newCategoryField = document.getElementById('newCategory');
         const addCategoryBtn = document.getElementById('addCategoryBtn');
+        const saveCategoryBtn = document.getElementById('saveCategoryBtn');
+        const typeSelect = document.querySelector('select[name="type"]');
+        const categoryTypeSelect = document.getElementById('categoryType');
+        const categoryTypeDiv = document.getElementById('categoryTypeDiv');
+
+        console.log('Initial:', {
+            categorySelect: categorySelect.value,
+            newCategoryField: newCategoryField.value,
+            typeSelect: typeSelect.value,
+            categoryTypeSelect: categoryTypeSelect.value
+        });
+
+        function toggleCategoryType() {
+            console.log('category type', {
+                transactionType: typeSelect.value,
+                categorySelectValue: categorySelect.value
+            });
+
+            if (typeSelect.value === 'income') {
+                categoryTypeDiv.classList.add('hidden');
+                categoryTypeSelect.removeAttribute('required');
+                if (newCategoryInput.classList.contains('hidden')) {
+                    categorySelect.removeAttribute('required');
+                }
+            } else {
+                if (!categorySelect.value && !newCategoryInput.classList.contains('hidden')) {
+                    categoryTypeDiv.classList.remove('hidden');
+                    categoryTypeSelect.setAttribute('required', 'required');
+                }
+            }
+        }
+
+        toggleCategoryType();
+        typeSelect.addEventListener('change', toggleCategoryType);
 
         addCategoryBtn.addEventListener('click', function() {
+            console.log('Add category button clicked');
             newCategoryInput.classList.remove('hidden');
+            categorySelect.value = '';
             categorySelect.disabled = true;
+            categorySelect.removeAttribute('required');
+            newCategoryField.setAttribute('required', 'required');
+            if (typeSelect.value === 'expense') {
+                categoryTypeDiv.classList.remove('hidden');
+                categoryTypeSelect.setAttribute('required', 'required');
+            }
             newCategoryField.focus();
         });
 
-        newCategoryField.addEventListener('blur', function() {
-            if (this.value) {
+        saveCategoryBtn.addEventListener('click', function() {
+            console.log('Save category button clicked', {
+                newCategoryValue: newCategoryField.value,
+                type: typeSelect.value,
+                categoryType: categoryTypeSelect.value
+            });
+
+            if (newCategoryField.value) {
+                const categoryData = {
+                    name: newCategoryField.value,
+                    type: typeSelect.value === 'income' ? 'income' : categoryTypeSelect.value,
+                };
+
                 fetch('/categories', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
-                        body: JSON.stringify({
-                            name: this.value
-                        })
+                        body: JSON.stringify(categoryData)
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        console.log('Category creation response:', response);
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
                     .then(category => {
-                        const option = new Option(category.name, category.name);
+                        console.log('Category created:', category);
+                        const option = new Option(category.name, category.id);
                         categorySelect.add(option, categorySelect.length);
-                        categorySelect.value = category.name;
+                        categorySelect.value = category.id;
                         categorySelect.disabled = false;
+                        categorySelect.setAttribute('required', 'required');
                         newCategoryInput.classList.add('hidden');
+                        newCategoryField.value = '';
+                        newCategoryField.removeAttribute('required');
+                        if (typeSelect.value === 'expense') {
+                            categoryTypeDiv.classList.add('hidden');
+                            categoryTypeSelect.removeAttribute('required');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to create category. Please try again.');
                     });
-            } else {
-                categorySelect.disabled = false;
             }
+        });
+
+        categorySelect.addEventListener('change', function() {
+            console.log('Category selected:', this.value);
+            if (this.value) {
+                categoryTypeDiv.classList.add('hidden');
+                categoryTypeSelect.removeAttribute('required');
+            }
+        });
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Form submission started', {
+                categorySelect: categorySelect.value,
+                newCategory: newCategoryField.value,
+                type: typeSelect.value,
+                categoryType: categoryTypeSelect.value
+            });
+
+            const formData = new FormData(this);
+            console.log('Form Data:', Object.fromEntries(formData));
+
+            this.submit();
         });
     });
 </script>
