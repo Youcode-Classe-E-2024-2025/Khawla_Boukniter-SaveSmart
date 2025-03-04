@@ -23,6 +23,62 @@
             </div>
         </div>
 
+        <div class="mb-8 bg-white rounded-2xl shadow-sm p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-light text-gray-800">Budget Method</h3>
+                <span class="text-sm bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full">
+                    Current: {{ auth()->user()->budget_method ?? 'Not Set' }}
+                </span>
+            </div>
+
+            <form action="{{ route('family.updateBudgetMethod') }}" method="POST">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    @foreach([
+                    '50-30-20' => [
+                    'title' => '50/30/20 Rule',
+                    'description' => 'Balance needs, wants, and savings',
+                    'color' => 'emerald'
+                    ],
+                    'intelligent-allocation' => [
+                    'title' => 'Intelligent Allocation',
+                    'description' => 'Allocate cash dynamically',
+                    'color' => 'blue'
+                    ],
+                    'zero-based' => [
+                    'title' => 'Zero-Based',
+                    'description' => 'Every dollar has a purpose',
+                    'color' => 'purple'
+                    ]
+                    ] as $method => $details)
+                    <div class="relative">
+                        <input type="radio" name="budget_method" value="{{ $method }}"
+                            id="method-{{ $method }}" class="peer hidden"
+                            {{ auth()->user()->budget_method === $method ? 'checked' : '' }}>
+                        <label for="method-{{ $method }}"
+                            class="block h-full p-6 bg-white border rounded-xl cursor-pointer
+                                          transition-all peer-checked:border-{{ $details['color'] }}-500 
+                                          peer-checked:ring-2 peer-checked:ring-{{ $details['color'] }}-500 
+                                          hover:border-{{ $details['color'] }}-200">
+                            <h4 class="text-lg font-medium text-gray-800">{{ $details['title'] }}</h4>
+                            <p class="text-sm text-gray-500 mt-2">{{ $details['description'] }}</p>
+                        </label>
+                    </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-6">
+                    <button type="submit"
+                        class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white 
+                                   py-3 px-4 rounded-xl font-medium hover:from-emerald-600 
+                                   hover:to-teal-700 transition duration-200 shadow-sm">
+                        Apply Budget Method
+                    </button>
+                </div>
+            </form>
+        </div>
+
+
         <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
             @if (Auth::user()->budget_method === '50-30-20')
             <div class="bg-white rounded-2xl shadow-sm p-6">
@@ -111,60 +167,6 @@
 
         </div>
 
-        <div class="mb-8 bg-white rounded-2xl shadow-sm p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-light text-gray-800">Budget Method</h3>
-                <span class="text-sm bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full">
-                    Current: {{ auth()->user()->budget_method ?? 'Not Set' }}
-                </span>
-            </div>
-
-            <form action="{{ route('family.updateBudgetMethod') }}" method="POST">
-                @csrf
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    @foreach([
-                    '50-30-20' => [
-                    'title' => '50/30/20 Rule',
-                    'description' => 'Balance needs, wants, and savings',
-                    'color' => 'emerald'
-                    ],
-                    'intelligent-allocation' => [
-                    'title' => 'Intelligent Allocation',
-                    'description' => 'Allocate cash dynamically',
-                    'color' => 'blue'
-                    ],
-                    'zero-based' => [
-                    'title' => 'Zero-Based',
-                    'description' => 'Every dollar has a purpose',
-                    'color' => 'purple'
-                    ]
-                    ] as $method => $details)
-                    <div class="relative">
-                        <input type="radio" name="budget_method" value="{{ $method }}"
-                            id="method-{{ $method }}" class="peer hidden"
-                            {{ auth()->user()->budget_method === $method ? 'checked' : '' }}>
-                        <label for="method-{{ $method }}"
-                            class="block h-full p-6 bg-white border rounded-xl cursor-pointer
-                                          transition-all peer-checked:border-{{ $details['color'] }}-500 
-                                          peer-checked:ring-2 peer-checked:ring-{{ $details['color'] }}-500 
-                                          hover:border-{{ $details['color'] }}-200">
-                            <h4 class="text-lg font-medium text-gray-800">{{ $details['title'] }}</h4>
-                            <p class="text-sm text-gray-500 mt-2">{{ $details['description'] }}</p>
-                        </label>
-                    </div>
-                    @endforeach
-                </div>
-
-                <div class="mt-6">
-                    <button type="submit"
-                        class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white 
-                                   py-3 px-4 rounded-xl font-medium hover:from-emerald-600 
-                                   hover:to-teal-700 transition duration-200 shadow-sm">
-                        Apply Budget Method
-                    </button>
-                </div>
-            </form>
-        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-white rounded-2xl shadow-sm p-6">
@@ -247,11 +249,4 @@
         </div>
     </div>
 </div>
-@endsection
-
-@section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // Add any additional JavaScript for charts or interactivity
-</script>
 @endsection
