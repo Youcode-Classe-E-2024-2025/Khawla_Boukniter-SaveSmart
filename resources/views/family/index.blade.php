@@ -23,44 +23,92 @@
             </div>
         </div>
 
-        <div class="mb-8 bg-white rounded-2xl shadow-sm p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-light text-gray-800">Smart Budget Insights</h3>
-                <span class="text-sm bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full">
-                    Monthly Overview
-                </span>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
+            @if (Auth::user()->budget_method === '50-30-20')
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-light text-gray-800">Basic 50/30/20 Split</h3>
+                    <span class="text-sm bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full">
+                        Standard Method
+                    </span>
+                </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                @foreach(['needs', 'wants', 'savings'] as $category)
-                <div class="bg-gray-50 rounded-xl p-4">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="capitalize font-medium text-gray-700">{{ $category }}</span>
-                        <span class="text-emerald-600 font-medium">
-                            {{ number_format($budgetData['actual'][$category], 2) }} MAD
-                        </span>
-                    </div>
-                    <div class="relative pt-1">
-                        <div class="flex mb-2 items-center justify-between">
-                            <div>
-                                <span class="text-sm font-medium {{ ($budgetData['targets'][$category] > 0 ? ($budgetData['actual'][$category] / $budgetData['targets'][$category]) * 100 : 0) > 100 ? 'text-red-600' : 'text-emerald-600' }}">
-                                    {{ number_format($budgetData['targets'][$category] > 0 ? ($budgetData['actual'][$category] / $budgetData['targets'][$category]) * 100 : 0, 1) }}%
+                <div class="space-y-4">
+                    @foreach(['needs', 'wants', 'savings'] as $category)
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="capitalize font-medium text-gray-700">{{ $category }}</span>
+                            <span class="text-emerald-600 font-medium">
+                                {{ number_format($basicBudget[$category], 2) }} MAD
+                            </span>
+                        </div>
+                        <div class="relative pt-1">
+                            @php
+                            $currentSpending = $optimizedBudget['actual'][$category];
+                            $limit = $basicBudget[$category];
+                            $percentage = $limit > 0 ? min(($currentSpending / $limit) * 100, 100) : 0;
+                            @endphp
+                            <div class="flex mb-2 items-center justify-between">
+                                <span class="text-sm font-medium {{ $percentage > 100 ? 'text-red-600' : 'text-emerald-600' }}">
+                                    {{ number_format($percentage, 1) }}%
+                                </span>
+                                <span class="text-sm text-gray-600">
+                                    {{ number_format($currentSpending, 2) }} / {{ number_format($limit, 2) }} MAD
                                 </span>
                             </div>
-                        </div>
-                        <div class="overflow-hidden h-2 text-xs flex rounded bg-emerald-100">
-                            <div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-emerald-500"
-                                style="width: {{ $budgetData['targets'][$category] > 0 ? min(($budgetData['actual'][$category] / $budgetData['targets'][$category]) * 100, 100) : 0 }}%">
+                            <div class="overflow-hidden h-2 text-xs flex rounded bg-emerald-100">
+                                <div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center {{ $percentage > 100 ? 'bg-red-500' : 'bg-emerald-500' }}"
+                                    style="width: {{ $percentage }}%">
+                                </div>
                             </div>
-
                         </div>
                     </div>
-                    <div class="mt-2 text-sm text-gray-500">
-                        Target: {{ number_format($budgetData['targets'][$category], 2) }} MAD
-                    </div>
+                    @endforeach
                 </div>
-                @endforeach
             </div>
+            @elseif (Auth::user()->budget_method === 'intelligent-allocation')
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-light text-gray-800">Smart Optimized Budget</h3>
+                    <span class="text-sm bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full">
+                        Intelligent Allocation
+                    </span>
+                </div>
+
+                <div class="space-y-4">
+                    @foreach(['needs', 'wants', 'savings'] as $category)
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="capitalize font-medium text-gray-700">{{ $category }}</span>
+                            <span class="text-emerald-600 font-medium">
+                                {{ number_format($optimizedBudget['actual'][$category], 2) }} MAD
+                            </span>
+                        </div>
+                        <div class="relative pt-1">
+                            <div class="flex mb-2 items-center justify-between">
+                                <div>
+                                    <span class="text-sm font-medium {{ ($optimizedBudget['targets'][$category] > 0 ? ($optimizedBudget['actual'][$category] / $optimizedBudget['targets'][$category]) * 100 : 0) > 100 ? 'text-red-600' : 'text-emerald-600' }}">
+                                        {{ number_format($optimizedBudget['targets'][$category] > 0 ? ($optimizedBudget['actual'][$category] / $optimizedBudget['targets'][$category]) * 100 : 0, 1) }}%
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="overflow-hidden h-2 text-xs flex rounded bg-emerald-100">
+                                <div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-emerald-500"
+                                    style="width: {{ $optimizedBudget['targets'][$category] > 0 ? min(($optimizedBudget['actual'][$category] / $optimizedBudget['targets'][$category]) * 100, 100) : 0 }}%">
+                                </div>
+                            </div>
+                            <div class="mt-2 text-sm text-gray-500">
+                                Target: {{ number_format($optimizedBudget['targets'][$category], 2) }} MAD
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+
+
         </div>
 
         <div class="mb-8 bg-white rounded-2xl shadow-sm p-6">
@@ -80,9 +128,9 @@
                     'description' => 'Balance needs, wants, and savings',
                     'color' => 'emerald'
                     ],
-                    'envelope' => [
-                    'title' => 'Envelope System',
-                    'description' => 'Allocate cash to specific categories',
+                    'intelligent-allocation' => [
+                    'title' => 'Intelligent Allocation',
+                    'description' => 'Allocate cash dynamically',
                     'color' => 'blue'
                     ],
                     'zero-based' => [

@@ -52,14 +52,34 @@ class TransactionController extends Controller
      */
     public function store(Request $request)
     {
-        Log::info('Transaction Request Data:', [
-            'all' => $request->all(),
-            'category_id' => $request->category_id,
-            'newCategory' => $request->newCategory,
-            'type' => $request->type,
-            'category_type' => $request->category_type
+        $user = Auth::user();
+        $validated = $this->validateTransactionRequest($request);
+
+        if ($request->type === 'expense') {
+            $categoryType = $this->getCategoryType($request);
+            $budgetCheck = $this->checkBudgetLimits($user, $validated['amount'], $categoryType);
+
+            if ($budgetCheck !== true) {
+                return back()->withErrors(['amount' => $budgetCheck])->withInput();
+            }
+        }
+
+        $categoryId = $this->handleCategory($request);
+
+        $transaction = Transaction::create([
+            'user_id' => $user->id,
+            'family_id' => $user->family_id,
+            'type' => $validated['type'],
+            'category_id' => $categoryId,
+            'amount' => $validated['amount'],
+            'description' => $validated['description']
         ]);
 
+        return redirect()->route('transactions.index')->with('success', 'Transaction added');
+    }
+
+    private function validateTransactionRequest(Request $request)
+    {
         $rules = [
             'type' => 'required|in:income,expense',
             'amount' => 'required|numeric|min:0',
@@ -72,52 +92,45 @@ class TransactionController extends Controller
             $rules['category_type'] = $request->newCategory ? 'required|in:needs,wants,savings' : 'nullable';
         }
 
-        $validated = $request->validate($rules);
+        return $request->validate($rules);
+    }
 
-        if ($request->type === 'expense') {
-            $user = Auth::user();
+    private function getCategoryType(Request $request)
+    {
+        return $request->newCategory ?
+            $request->category_type :
+            Category::find($request->category_id)->type;
+    }
 
-            if ($user->budget_method === '50/30/20') {
-                $budgetData = Transaction::getBudgetAnalysis($user->id, $user->family_id);
-                $categoryType = $request->newCategory ? $request->category_type : Category::find($request->category_id)->type;
+    private function checkBudgetLimits($user, $amount, $categoryType)
+    {
+        $totalIncome = Transaction::calculateMonthlyIncome($user->id, $user->family_id);
+        $basicBudget = Transaction::applyFiftyThirtyTwenty($totalIncome);
+        $currentSpending = Transaction::calculateMonthlySpending($user->id, $user->family_id);
 
-                $remainingBudget = [
-                    'needs' => $budgetData['targets']['needs'] - $budgetData['actual']['needs'],
-                    'wants' => $budgetData['targets']['wants'] - $budgetData['actual']['wants'],
-                    'savings' => $budgetData['targets']['savings'] - $budgetData['actual']['savings']
-                ];
+        if ($user->budget_method === '50-30-20') {
+            // Get the limit for this category type from basic 50/30/20 split
+            $categoryLimit = $basicBudget[$categoryType];
+            $currentAmount = $currentSpending[$categoryType];
+            $remainingBudget = $categoryLimit - $currentAmount;
 
-                if ($validated['amount'] > $remainingBudget[$categoryType]) {
-                    return back()->withErrors([
-                        'amount' => "Transaction exceeds your {$categoryType} budget. Maximum available: {$remainingBudget[$categoryType]} MAD"
-                    ])->withInput();
-                }
-            } else {
-                $totalIncome = Transaction::where(function ($query) use ($user) {
-                    $query->where('user_id', $user->id)
-                        ->orWhere('family_id', $user->family_id);
-                })
-                    ->where('type', 'income')
-                    ->whereMonth('created_at', now()->month)
-                    ->sum('amount');
-
-                $totalExpenses = Transaction::where(function ($query) use ($user) {
-                    $query->where('user_id', $user->id)
-                        ->orWhere('family_id', $user->family_id);
-                })
-                    ->where('type', 'expense')
-                    ->whereMonth('created_at', now()->month)
-                    ->sum('amount');
-
-                if (($totalExpenses + $validated['amount']) > $totalIncome) {
-                    $remaining = $totalIncome - $totalExpenses;
-                    return back()->withErrors([
-                        'amount' => "Transaction exceeds your available income. Maximum available: {$remaining} MAD"
-                    ])->withInput();
-                }
+            if ($amount > $remainingBudget) {
+                return "This transaction would exceed your {$categoryType} budget limit. Available: {$remainingBudget} MAD (Limit: {$categoryLimit} MAD)";
+            }
+        } else {
+            // Intelligent allocation - just check if total expenses exceed income
+            $totalExpenses = array_sum($currentSpending);
+            if (($totalExpenses + $amount) > $totalIncome) {
+                $remaining = $totalIncome - $totalExpenses;
+                return "Transaction exceeds your available income. Maximum available: {$remaining} MAD";
             }
         }
 
+        return true;
+    }
+
+    private function handleCategory(Request $request)
+    {
         if ($request->newCategory) {
             $category = Category::create([
                 'name' => $request->newCategory,
@@ -125,21 +138,10 @@ class TransactionController extends Controller
                 'user_id' => Auth::id(),
                 'family_id' => Auth::user()->family_id
             ]);
-            $categoryId = $category->id;
-        } else {
-            $categoryId = $request->category_id;
+            return $category->id;
         }
 
-        $transaction = Transaction::create([
-            'user_id' => Auth::id(),
-            'family_id' => Auth::user()->family_id,
-            'type' => $validated['type'],
-            'category_id' => $categoryId,
-            'amount' => $validated['amount'],
-            'description' => $validated['description']
-        ]);
-
-        return redirect()->route('transactions.index')->with('success', 'Transaction added');
+        return $request->category_id;
     }
 
 

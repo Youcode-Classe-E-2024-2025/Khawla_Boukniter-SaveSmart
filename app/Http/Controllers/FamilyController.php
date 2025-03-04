@@ -17,10 +17,13 @@ class FamilyController extends Controller
 
     private function getFamilyData($user)
     {
+        $income = Transaction::calculateMonthlyIncome($user->id, $user->family_id);
+
         return [
             'familyMembers' => User::where('family_id', $user->family_id)->get(),
             'recentTransactions' => $this->getRecentTransactions($user),
-            'budgetData' => Transaction::getBudgetAnalysis($user->id, $user->family_id)
+            'basicBudget' => Transaction::applyFiftyThirtyTwenty($income),
+            'optimizedBudget' => Transaction::getBudgetAnalysis($user->id, $user->family_id)
         ];
     }
 
@@ -158,7 +161,7 @@ class FamilyController extends Controller
         $user = Auth::user();
         $user->update(['budget_method' => $request->budget_method]);
 
-        $income = Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('typr', 'income')->sum('amount');
+        $income = Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'income')->sum('amount');
 
         $spending = $this->getSpending($user);
 
@@ -169,6 +172,32 @@ class FamilyController extends Controller
             'income' => $income
         ]);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     // public function allocateBudget($income)

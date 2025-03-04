@@ -20,30 +20,63 @@
                 <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">SaveSmart</span>
             </a>
 
-            <div class="hidden w-full md:block md:w-auto">
-                <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 md:flex-row md:space-x-8 rtl:space-x-reverse">
+            <button data-collapse-toggle="navbar-menu" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-white rounded-lg md:hidden hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+
+            <div class="hidden w-full md:block md:w-auto" id="navbar-menu">
+                <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 md:flex-row md:items-center md:space-x-8 rtl:space-x-reverse bg-emerald-600 md:bg-transparent rounded-lg md:rounded-none">
                     @auth
-                    <li><a href="{{ Auth::user()->account_type === 'family' ? route('family.index') : route('auth.profile') }}" class="text-white hover:text-emerald-200">Dashboard</a></li>
+                    <li>
+                        <a href="{{ Auth::user()->account_type === 'family' ? route('family.index') : route('auth.profile') }}" class="block px-4 py-2 text-white hover:bg-emerald-700 md:hover:bg-transparent md:hover:text-emerald-200 rounded transition-colors">
+                            <span class="flex items-center"> Dashboard </span>
+                        </a>
+                    </li>
                     @else
-                    <a href="{{ route('login') }}" class="text-white hover:text-emerald-200">
-                        Dashboard
-                    </a>
+                    <li>
+                        <a href="{{ route('login') }}"
+                            class="block px-4 py-2 text-white hover:bg-emerald-700 md:hover:bg-transparent md:hover:text-emerald-200 rounded transition-colors">
+                            Login
+                        </a>
+                    </li>
                     @endauth
-                    <li><a href="{{ route('transactions.index') }}" class="text-white hover:text-emerald-200">Transactions</a></li>
-                    <li><a href="{{ route('goals.index') }}" class="text-white hover:text-emerald-200">Budget Goals</a></li>
-                    <li><a href="{{ route('statistics.index') }}" class="text-white hover:text-emerald-200">Reports</a></li>
+
+                    <li>
+                        <a href="{{ route('transactions.index') }}" class="block px-4 py-2 text-white hover:bg-emerald-700 md:hover:bg-transparent md:hover:text-emerald-200 rounded transition-colors">
+                            <span class="flex items-center"> Transactions </span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('goals.index') }}" class="block px-4 py-2 text-white hover:bg-emerald-700 md:hover:bg-transparent md:hover:text-emerald-200 rounded transition-colors">
+                            <span class="flex items-center"> Goals </span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ route('statistics.index') }}" class="block px-4 py-2 text-white hover:bg-emerald-700 md:hover:bg-transparent md:hover:text-emerald-200 rounded transition-colors">
+                            <span class="flex items-center"> Reports </span>
+                        </a>
+                    </li>
+
+                    @auth
+                    <li class="md:ml-6">
+                        <form action="{{ route('logout') }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit"
+                                class="w-full px-4 py-2 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm text-center transition-colors">
+                                Logout
+                            </button>
+                        </form>
+                    </li>
+                    @endauth
                 </ul>
             </div>
 
-            <div class="flex items-center space-x-4">
 
-                <form action="{{ route('logout') }}" method="POST" class="inline">
-                    @csrf
-                    <button type="submit" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2 text-center">
-                        Logout
-                    </button>
-                </form>
-            </div>
+
         </div>
     </nav>
 
