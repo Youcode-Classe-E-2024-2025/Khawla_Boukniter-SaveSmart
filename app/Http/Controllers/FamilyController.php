@@ -12,22 +12,62 @@ class FamilyController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
+        return view('family.index', $this->getFamilyData(Auth::user()));
+    }
 
-        $family_members = User::where('family_id', $user->family_id)->get();
+    private function getFamilyData($user)
+    {
+        return [
+            'familyMembers' => User::where('family_id', $user->family_id)->get(),
+            'recentTransactions' => $this->getRecentTransactions($user),
+            'budgetData' => Transaction::getBudgetAnalysis($user->id, $user->family_id)
+        ];
+    }
 
-        $recentTransactions = Transaction::where(function ($query) use ($user) {
-            $query->where('user_id', $user->id)
-                ->orWhere('family_id', $user->family_id);
-        })->orderBy('created_at', 'desc')
-            ->take(3)
-            ->get();
+    private function getRecentTransactions($user)
+    {
+        return Transaction::where(function ($query) use ($user) {
+            $query->where('user_id', $user->id)->orWhere('family_id', $user->family_id);
+        })->orderBy('created_at', 'desc')->take(3)->get();
+    }
+
+    private function calculateBudget($income, $spending = null)
+    {
+        // Initial 50/30/20 allocation
+        $budget = [
+            'needs' => $income * 0.5,
+            'wants' => $income * 0.3,
+            'savings' => $income * 0.2
+        ];
+
+        if ($spending && $spending['needs'] > $budget['needs']) {
+            // Calculate the excess amount
+            $excess = $spending['needs'] - $budget['needs'];
+
+            // Redistribute remaining amount (40%) between wants and savings
+            $remainingAmount = $income - $spending['needs'];
+
+            // Maintain the original 3:2 ratio between wants and savings
+            $budget['needs'] = $spending['needs'];
+            $budget['wants'] = $remainingAmount * 0.6;  // 60% of remaining
+            $budget['savings'] = $remainingAmount * 0.4; // 40% of remaining
+        }
+
+        return $budget;
+    }
 
 
-        return view('family.index', [
-            'familyMembers' => $family_members,
-            'recentTransactions' => $recentTransactions,
-        ]);
+    private function getSpending($user)
+    {
+        $query = Transaction::where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)->orWhere('family_id', $user->family_id);
+        })->where('type', 'expense');
+
+        return [
+            'needs' => (clone $query)->whereHas('category', fn($q) => $q->where('type', 'needs'))->sum('amount'),
+            'wants' => (clone $query)->whereHas('category', fn($q) => $q->where('type', 'wants'))->sum('amount'),
+            'savings' => (clone $query)->whereHas('category', fn($q) => $q->where('type', 'savings'))->sum('amount'),
+        ];
     }
 
     public function create()
@@ -59,55 +99,96 @@ class FamilyController extends Controller
         ]);
     }
 
+    // public function updateBudgetMethod(Request $request)
+    // {
+    //     $user = Auth::user();
+
+    //     $user->update([
+    //         'budget_method' => $request->budget_method
+    //     ]);
+
+    //     $income = Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'income')->sum('amount');
+
+    //     $budget = [
+    //         'needs' => $income * 0.5,
+    //         'wants' => $income * 0.3,
+    //         'savings' => $income * 0.2,
+    //     ];
+
+    //     $spending = [
+    //         'needs' => Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'expense')->whereHas('category', function ($query) {
+    //             $query->where('type', 'needs');
+    //         })->sum('amount'),
+
+    //         'savings' => Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'expense')->whereHas('category', function ($query) {
+    //             $query->where('type', 'needs');
+    //         })->sum('amount'),
+
+    //         'wants' => Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'expense')->whereHas('category', function ($query) {
+    //             $query->where('type', 'wants');
+    //         })->sum('amount'),
+    //     ];
+
+    //     $family_members = User::where('family_id', $user->family_id)->get();
+
+    //     $recentTransactions = Transaction::where(function ($query) use ($user) {
+    //         $query->where('user_id', $user->id)
+    //             ->orWhere('family_id', $user->family_id);
+    //     })->orderBy('created_at', 'desc')
+    //         ->take(3)
+    //         ->get();
+
+    //     $budgetData = Transaction::getBudgetAnalysis($user->id, $user->family_id);
+
+
+    //     return view('family.index', [
+    //         'budget' => $budget,
+    //         'spending' => $spending,
+    //         'income' => $income,
+    //         'familyMembers' => $family_members,
+    //         'recentTransactions' => $recentTransactions,
+    //         'budgetData' => $budgetData
+    //     ]);
+    // }
+
+
+
     public function updateBudgetMethod(Request $request)
     {
         $user = Auth::user();
+        $user->update(['budget_method' => $request->budget_method]);
 
-        $user->update([
-            'budget_method' => $request->budget_method
-        ]);
+        $income = Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('typr', 'income')->sum('amount');
 
-        $income = Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'income')->sum('amount');
-
-        $budget = [
-            'needs' => $income * 0.5,
-            'wants' => $income * 0.3,
-            'savings' => $income * 0.2,
-        ];
-
-        $spending = [
-            'needs' => Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'expense')->whereHas('category', function ($query) {
-                $query->where('type', 'needs');
-            })->sum('amount'),
-
-            'savings' => Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'expense')->whereHas('category', function ($query) {
-                $query->where('type', 'needs');
-            })->sum('amount'),
-
-            'wants' => Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'expense')->whereHas('category', function ($query) {
-                $query->where('type', 'wants');
-            })->sum('amount'),
-        ];
-
-        $family_members = User::where('family_id', $user->family_id)->get();
-
-        $recentTransactions = Transaction::where(function ($query) use ($user) {
-            $query->where('user_id', $user->id)
-                ->orWhere('family_id', $user->family_id);
-        })->orderBy('created_at', 'desc')
-            ->take(3)
-            ->get();
-
-        $budgetData = Transaction::getBudgetAnalysis($user->id, $user->family_id);
-
+        $spending = $this->getSpending($user);
 
         return view('family.index', [
-            'budget' => $budget,
+            ...$this->getFamilyData($user),
+            'budget' => $this->calculateBudget($income, $spending),
             'spending' => $spending,
-            'income' => $income,
-            'familyMembers' => $family_members,
-            'recentTransactions' => $recentTransactions,
-            'budgetData' => $budgetData
+            'income' => $income
         ]);
     }
+
+
+    // public function allocateBudget($income)
+    // {
+    //     $amountNeeds = $income * 0.5;
+    //     $amountWants = $income * 0.3;
+    //     $amountSavings = $income * 0.2;
+
+    //     if ($amountNeeds > 0.6 * $income) {
+    //         $amountWants = $this->adjustWants($amountWants);
+    //     }
+
+    //     if ($income > 10000) {
+    //         $amountSavings += 0.05 * $income;
+    //     }
+    // }
+
+    // public function adjustWants($currentWants)
+    // {
+    //     $adjustedWants = $currentWants - 0.1 * $currentWants;
+    //     return $adjustedWants;
+    // }
 }

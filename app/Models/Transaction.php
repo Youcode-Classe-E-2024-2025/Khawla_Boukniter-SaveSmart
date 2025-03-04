@@ -31,7 +31,6 @@ class Transaction extends Model
 
     public static function getBudgetAnalysis($userId, $familyId = null)
     {
-        // Get total income for the month
         $totalIncome = self::where(function ($query) use ($userId, $familyId) {
             $query->where('user_id', $userId)
                 ->orWhere('family_id', $familyId);
@@ -40,12 +39,8 @@ class Transaction extends Model
             ->whereMonth('created_at', now()->month)
             ->get();
 
-        Log::info('Income transactions:', $totalIncome->toArray());
-
-        // Calculate total income amount
         $totalIncomeAmount = $totalIncome->sum('amount');
 
-        // Get all expenses with their categories
         $expenses = self::where(function ($query) use ($userId, $familyId) {
             $query->where('user_id', $userId)
                 ->orWhere('family_id', $familyId);
@@ -55,9 +50,6 @@ class Transaction extends Model
             ->with('category')
             ->get();
 
-        Log::info('Expense transactions:', $expenses->toArray());
-
-        // Group expenses by category type
         $actualSpending = [
             'needs' => $expenses->whereIn('category.type', ['needs'])->sum('amount'),
             'wants' => $expenses->whereIn('category.type', ['wants'])->sum('amount'),
@@ -69,6 +61,15 @@ class Transaction extends Model
             'wants' => $totalIncomeAmount * 0.3,
             'savings' => $totalIncomeAmount * 0.2
         ];
+
+        if ($actualSpending['needs'] > $budgetTargets['needs']) {
+            $remainingAmount = $totalIncomeAmount - $actualSpending['needs'];
+            $budgetTargets = [
+                'needs' => $actualSpending['needs'],
+                'wants' => $remainingAmount * 0.6,
+                'savings' => $remainingAmount * 0.4
+            ];
+        }
 
         return [
             'totalIncome' => $totalIncomeAmount,

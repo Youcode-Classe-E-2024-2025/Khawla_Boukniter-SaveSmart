@@ -42,7 +42,9 @@ class TransactionController extends Controller
 
         $categories = app(CategoryController::class)->getCategories();
 
-        return view('transactions.create', ['categories' => $categories]);
+        $transaction = new Transaction();
+
+        return view('transactions.create', ['categories' => $categories, 'transaction' => $transaction]);
     }
 
     /**
