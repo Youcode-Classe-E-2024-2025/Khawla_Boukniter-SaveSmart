@@ -24,7 +24,9 @@ class FamilyController extends Controller
             'familyMembers' => User::where('family_id', $user->family_id)->get(),
             'recentTransactions' => $this->getRecentTransactions($user),
             'basicBudget' => Transaction::applyFiftyThirtyTwenty($income),
-            'optimizedBudget' => Transaction::getBudgetAnalysis($user->id, $user->family_id)
+            'optimizedBudget' => Transaction::getBudgetAnalysis($user->id, $user->family_id),
+            'spendingTrends' => Transaction::getSpendingTrends($user->id, $user->family_id),
+            'insights' => Transaction::getFinancialInsights($user->id, $user->family_id)
         ];
     }
 
@@ -102,60 +104,6 @@ class FamilyController extends Controller
             'invitation_code' => $family->invitation_code
         ]);
     }
-
-    // public function updateBudgetMethod(Request $request)
-    // {
-    //     $user = Auth::user();
-
-    //     $user->update([
-    //         'budget_method' => $request->budget_method
-    //     ]);
-
-    //     $income = Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'income')->sum('amount');
-
-    //     $budget = [
-    //         'needs' => $income * 0.5,
-    //         'wants' => $income * 0.3,
-    //         'savings' => $income * 0.2,
-    //     ];
-
-    //     $spending = [
-    //         'needs' => Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'expense')->whereHas('category', function ($query) {
-    //             $query->where('type', 'needs');
-    //         })->sum('amount'),
-
-    //         'savings' => Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'expense')->whereHas('category', function ($query) {
-    //             $query->where('type', 'needs');
-    //         })->sum('amount'),
-
-    //         'wants' => Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'expense')->whereHas('category', function ($query) {
-    //             $query->where('type', 'wants');
-    //         })->sum('amount'),
-    //     ];
-
-    //     $family_members = User::where('family_id', $user->family_id)->get();
-
-    //     $recentTransactions = Transaction::where(function ($query) use ($user) {
-    //         $query->where('user_id', $user->id)
-    //             ->orWhere('family_id', $user->family_id);
-    //     })->orderBy('created_at', 'desc')
-    //         ->take(3)
-    //         ->get();
-
-    //     $budgetData = Transaction::getBudgetAnalysis($user->id, $user->family_id);
-
-
-    //     return view('family.index', [
-    //         'budget' => $budget,
-    //         'spending' => $spending,
-    //         'income' => $income,
-    //         'familyMembers' => $family_members,
-    //         'recentTransactions' => $recentTransactions,
-    //         'budgetData' => $budgetData
-    //     ]);
-    // }
-
-
 
     public function updateBudgetMethod(Request $request)
     {

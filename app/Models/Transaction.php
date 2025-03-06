@@ -116,9 +116,6 @@ class Transaction extends Model
         ];
     }
 
-
-
-
     public static function analyzeSpending($userId, $familyId)
     {
         return self::where(function ($query) use ($userId, $familyId) {
@@ -130,62 +127,44 @@ class Transaction extends Model
             ->get();
     }
 
+    public static function getSpendingTrends($userId, $familyId = null)
+    {
+        $currentMonth = self::calculateMonthlySpending($userId, $familyId);
+        $lastMonth = self::where(function ($query) use ($userId, $familyId) {
+            $query->where('user_id', $userId)
+                ->orWhere('family_id', $familyId);
+        })
+            ->where('type', 'expense')
+            ->whereMonth('created_at', now()->subMonth())
+            ->with('category')
+            ->get();
 
+        $lastMonthSpending = [
+            'needs' => $lastMonth->whereIn('category.type', ['needs'])->sum('amount'),
+            'wants' => $lastMonth->whereIn('category.type', ['wants'])->sum('amount'),
+            'savings' => $lastMonth->whereIn('category.type', ['savings'])->sum('amount')
+        ];
 
+        return [
+            'current_month' => $currentMonth,
+            'last_month' => $lastMonthSpending,
+            'changes' => [
+                'needs' => $currentMonth['needs'] - $lastMonthSpending['needs'],
+                'wants' => $currentMonth['wants'] - $lastMonthSpending['wants'],
+                'savings' => $currentMonth['savings'] - $lastMonthSpending['savings']
+            ]
+        ];
+    }
 
+    public static function getFinancialInsights($userId, $familyId = null)
+    {
+        $monthlyIncome = self::calculateMonthlyIncome($userId, $familyId);
+        $monthlySpending = self::calculateMonthlySpending($userId, $familyId);
 
-
-
-    // public static function getBudgetAnalysis($userId, $familyId = null)
-    // {
-    //     $totalIncome = self::where(function ($query) use ($userId, $familyId) {
-    //         $query->where('user_id', $userId)
-    //             ->orWhere('family_id', $familyId);
-    //     })
-    //         ->where('type', 'income')
-    //         ->whereMonth('created_at', now()->month)
-    //         ->get();
-
-    //     $totalIncomeAmount = $totalIncome->sum('amount');
-
-    //     $expenses = self::where(function ($query) use ($userId, $familyId) {
-    //         $query->where('user_id', $userId)
-    //             ->orWhere('family_id', $familyId);
-    //     })
-    //         ->where('type', 'expense')
-    //         ->whereMonth('created_at', now()->month)
-    //         ->with('category')
-    //         ->get();
-
-    //     $actualSpending = [
-    //         'needs' => $expenses->whereIn('category.type', ['needs'])->sum('amount'),
-    //         'wants' => $expenses->whereIn('category.type', ['wants'])->sum('amount'),
-    //         'savings' => $expenses->whereIn('category.type', ['savings'])->sum('amount')
-    //     ];
-
-    //     $budgetTargets = [
-    //         'needs' => $totalIncomeAmount * 0.5,
-    //         'wants' => $totalIncomeAmount * 0.3,
-    //         'savings' => $totalIncomeAmount * 0.2
-    //     ];
-
-    //     if ($actualSpending['needs'] > $budgetTargets['needs']) {
-    //         $remainingAmount = $totalIncomeAmount - $actualSpending['needs'];
-    //         $budgetTargets = [
-    //             'needs' => $actualSpending['needs'],
-    //             'wants' => $remainingAmount * 0.6,
-    //             'savings' => $remainingAmount * 0.4
-    //         ];
-    //     }
-
-    //     return [
-    //         'totalIncome' => $totalIncomeAmount,
-    //         'targets' => $budgetTargets,
-    //         'actual' => $actualSpending,
-    //         'details' => [
-    //             'income_transactions' => $totalIncome,
-    //             'expense_transactions' => $expenses
-    //         ]
-    //     ];
-    // }
+        return [
+            'savings_rate' => $monthlyIncome > 0 ? ($monthlySpending['savings'] / $monthlyIncome) * 100 : 0,
+            'category_breakdown' => Category::getCategoryBreakdown($userId, $familyId),
+            'goals_progress' => Goal::getActiveGoals($userId, $familyId),
+        ];
+    }
 }

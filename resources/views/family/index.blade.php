@@ -168,55 +168,7 @@
         </div>
 
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white rounded-2xl shadow-sm p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-light text-gray-800">Recent Transactions</h3>
-                    <a href="{{ route('transactions.index') }}"
-                        class="text-emerald-600 hover:text-emerald-700">View All</a>
-                </div>
-
-                <div class="space-y-4">
-                    @foreach($recentTransactions as $transaction)
-                    <div class="group hover:bg-gray-50 p-4 rounded-xl transition-all">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-10 h-10 {{ $transaction->type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' }} 
-                                                rounded-full flex items-center justify-center">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        @if($transaction->type === 'income')
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 6v12m3-2.818l-3 3-3-3" />
-                                        @else
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 4v16m0-16l-4 4m4-4l4 4" />
-                                        @endif
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="font-medium text-gray-900">{{ $transaction->category->name }}</p>
-                                    <p class="text-sm text-gray-500">{{ $transaction->description }}</p>
-                                    <div class="flex items-center space-x-2 text-xs text-gray-400">
-                                        <span>{{ $transaction->created_at->format('d M, H:i') }}</span>
-                                        <span>•</span>
-                                        <span>{{ $transaction->user->name }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex flex-col items-end">
-                                <span class="{{ $transaction->type === 'income' ? 'text-green-600' : 'text-red-600' }} font-medium">
-                                    {{ $transaction->type === 'income' ? '+' : '-' }}{{ number_format($transaction->amount, 2) }} MAD
-                                </span>
-                                <div class="opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <a href="{{ route('transactions.edit', $transaction) }}"
-                                        class="text-sm text-blue-500">Edit</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
             @if(auth()->user()->account_type === 'family')
             <div class="bg-white rounded-2xl shadow-sm p-6">
@@ -246,7 +198,113 @@
                 </div>
             </div>
             @endif
+
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xl font-light text-gray-800">Financial Insights</h3>
+                    <span class="text-sm bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full">
+                        Monthly Overview
+                    </span>
+                </div>
+
+                <div class="p-4 rounded-lg mb-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-600">Monthly Savings Rate</span>
+                        <span class="text-lg font-medium {{ $insights['savings_rate'] >= 20 ? 'text-emerald-600' : 'text-orange-500' }}">
+                            {{ number_format($insights['savings_rate'], 1) }}%
+                        </span>
+                    </div>
+                    <div class="h-2 bg-gray-100 rounded-full">
+                        <div class="h-2 bg-emerald-500 rounded-full" style="width: {{ min($insights['savings_rate'], 100) }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Goals Progress -->
+                @if($insights['goals_progress']->isNotEmpty())
+                <div class="mt-6">
+                    <h4 class="text-xl font-light text-gray-800">Goals Progress</h4>
+                    @foreach($insights['goals_progress'] as $goal)
+                    <div class="p-4 rounded-lg mb-3">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-600">{{ $goal->name }}</span>
+                            <span class="text-sm text-gray-500">
+                                {{ number_format(($goal->current_amount / $goal->target_amount) * 100, 1) }}%
+                            </span>
+                        </div>
+                        <div class="h-2 bg-gray-200 rounded-full">
+                            <div class="h-2 bg-emerald-500 rounded-full"
+                                style="width: {{ ($goal->current_amount / $goal->target_amount) * 100 }}%">
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+
+            </div>
+
+
         </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+
+                <div class="space-y-4">
+                    <h4 class="text-xl font-light text-gray-800 mb-6">Spending by Category</h4>
+                    @foreach($insights['category_breakdown'] as $category)
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span class="capitalize">{{ $category->name }}</span>
+                        <span class="font-medium">{{ number_format($category->total, 2) }} MAD</span>
+                    </div>
+                    @endforeach
+                </div>
+
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-light text-gray-800">Spending Trends</h3>
+                    <span class="text-sm bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full">
+                        Month-to-Month Analysis
+                    </span>
+                </div>
+
+                <div class="space-y-6">
+                    @foreach(['needs', 'wants', 'savings'] as $category)
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="capitalize font-medium text-gray-700">{{ $category }}</span>
+                            <span class="text-sm {{ $spendingTrends['changes'][$category] > 0 ? 'text-red-600' : 'text-emerald-600' }}">
+                                {{ $spendingTrends['changes'][$category] > 0 ? '↑' : '↓' }}
+                                {{ number_format(abs($spendingTrends['changes'][$category]), 2) }} MAD
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white rounded-lg p-3">
+                                <div class="text-sm text-gray-500">Last Month</div>
+                                <div class="text-lg font-medium">
+                                    {{ number_format($spendingTrends['last_month'][$category], 2) }} MAD
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-lg p-3">
+                                <div class="text-sm text-gray-500">Current Month</div>
+                                <div class="text-lg font-medium">
+                                    {{ number_format($spendingTrends['current_month'][$category], 2) }} MAD
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+
+
+            </div>
+
+        </div>
+
+
     </div>
 </div>
 @endsection
