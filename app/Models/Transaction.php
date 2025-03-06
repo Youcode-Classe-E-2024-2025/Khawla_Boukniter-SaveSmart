@@ -42,12 +42,18 @@ class Transaction extends Model
     {
         $baseAllocation = self::applyFiftyThirtyTwenty($income);
 
-        if ($actualSpending['needs'] > $baseAllocation['needs']) {
-            $remainingAmount = $income - $actualSpending['needs'];
+        if (
+            $actualSpending['needs'] > $baseAllocation['needs'] ||
+            $actualSpending['wants'] > $baseAllocation['wants']
+        ) {
+
+            $totalRequired = $actualSpending['needs'] + $actualSpending['wants'];
+            $remainingForSavings = max($income - $totalRequired, $income * 0.1);
+
             return [
                 'needs' => $actualSpending['needs'],
-                'wants' => $remainingAmount * 0.6,
-                'savings' => $remainingAmount * 0.4
+                'wants' => $actualSpending['wants'],
+                'savings' => $remainingForSavings
             ];
         }
 
@@ -109,6 +115,25 @@ class Transaction extends Model
             'savings' => $expenses->whereIn('category.type', ['savings'])->sum('amount')
         ];
     }
+
+
+
+
+    public static function analyzeSpending($userId, $familyId)
+    {
+        return self::where(function ($query) use ($userId, $familyId) {
+            $query->where('user_id', $userId)
+                ->orWhere('family_id', $familyId);
+        })
+            ->selectRaw('category_id, type, SUM(amount) as total, COUNT(*) as frequency')
+            ->groupBy('category_id', 'type')
+            ->get();
+    }
+
+
+
+
+
 
 
     // public static function getBudgetAnalysis($userId, $familyId = null)

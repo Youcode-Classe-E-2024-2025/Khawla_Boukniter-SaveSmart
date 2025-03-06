@@ -35,4 +35,14 @@ class Goal extends Model
     {
         return $this->belongsTo(Family::class);
     }
+
+    public static function getActiveGoals($userId, $familyId)
+    {
+        return self::where(function ($query) use ($userId, $familyId) {
+            $query->where('user_id', $userId)
+                ->orWhere('family_id', $familyId);
+        })
+            ->where('target_date', '>', now())
+            ->get();
+    }
 }

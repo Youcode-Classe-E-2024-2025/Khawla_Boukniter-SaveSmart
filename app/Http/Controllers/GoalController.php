@@ -6,6 +6,7 @@ use App\Models\Goal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Category;
+use Illuminate\Support\Facades\Log;
 
 class GoalController extends Controller
 {
@@ -49,6 +50,11 @@ class GoalController extends Controller
      */
     public function store(Request $request)
     {
+        Log::info('Goal creation attempt', [
+            'request' => $request->all(),
+            'category' => $request->category
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string',
             'target_amount' => 'required|numeric|min:0',
@@ -57,12 +63,16 @@ class GoalController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        Log::info('Validated goal data', ['validated' => $validated]);
+
         $goal = Goal::create([
             ...$validated,
             'user_id' => Auth::id(),
             'family_id' => Auth::user()->family_id,
             'current_amount' => 0
         ]);
+
+        Log::info('Goal created', ['goal' => $goal->toArray()]);
 
         return redirect()->route('goals.index')->with('success', 'Goal created');
     }

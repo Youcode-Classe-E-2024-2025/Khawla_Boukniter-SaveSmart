@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Family;
 use App\Models\User;
 use App\Models\Transaction;
+use App\Models\Goal;
 
 class FamilyController extends Controller
 {
@@ -161,16 +162,42 @@ class FamilyController extends Controller
         $user = Auth::user();
         $user->update(['budget_method' => $request->budget_method]);
 
-        $income = Transaction::where('user_id', $user->id)->orWhere('family_id', $user->family_id)->where('type', 'income')->sum('amount');
+        $income = Transaction::calculateMonthlyIncome($user->id, $user->family_id);
 
         $spending = $this->getSpending($user);
 
+        if ($request->budget_method === 'intelligent-allocation') {
+            $spendingPatterns = Transaction::analyzeSpending($user->id, $user->family_id);
+            $goals = Goal::getActiveGoals($user->id, $user->family_id);
+            $budget = $this->calculateIntelligentBudget($income, $spendingPatterns, $goals);
+        } else {
+            $budget = Transaction::optimizeBudget($income, $spending);
+        }
+
         return view('family.index', [
             ...$this->getFamilyData($user),
-            'budget' => $this->calculateBudget($income, $spending),
+            'budget' => $budget,
             'spending' => $spending,
-            'income' => $income
+            'income' => $income,
+            'adjustmentDetails' => [
+                'needsExceeded' => $spending['needs'] > ($income * 0.5),
+                'wantsExceeded' => $spending['wants'] > ($income * 0.3),
+                'savingsImpact' => $budget['savings'] < ($income * 0.2)
+            ]
         ]);
+    }
+
+    private function calculateIntelligentBudget($income, $spending, $goals)
+    {
+        $essentialExpenses = $spending->where('type', 'needs')->sum('total');
+        $savingsGoals = $goals->sum('target_amount');
+        $discretionaryFunds = $income - $essentialExpenses - $savingsGoals;
+
+        return [
+            'needs' => max($essentialExpenses, $income * 0.6),
+            'wants' => min($discretionaryFunds, $income * 0.2),
+            'savings' => max($savingsGoals, $income * 0.2)
+        ];
     }
 
 

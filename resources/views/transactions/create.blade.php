@@ -50,6 +50,20 @@
                                 </select>
                             </div>
 
+                            <div id="categoryScopeDiv" class="mt-2">
+                                <label class="block text-sm font-medium text-gray-700">Category Scope</label>
+                                <div class="mt-1 space-x-4">
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="category_scope" value="personal" class="form-radio text-emerald-500" checked>
+                                        <span class="ml-2">Personal</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="category_scope" value="shared" class="form-radio text-emerald-500">
+                                        <span class="ml-2">Shared</span>
+                                    </label>
+                                </div>
+                            </div>
+
                             <button type="button" id="saveCategoryBtn" class="w-full mt-2 bg-emerald-500 text-white py-2 px-4 rounded-lg hover:bg-emerald-600">
                                 Save Category
                             </button>
@@ -144,6 +158,7 @@
                 const categoryData = {
                     name: newCategoryField.value,
                     type: typeSelect.value === 'income' ? 'income' : categoryTypeSelect.value,
+                    scope: document.querySelector('input[name="category_scope"]:checked').value
                 };
 
                 fetch('/categories', {

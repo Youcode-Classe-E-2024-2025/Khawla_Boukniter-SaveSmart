@@ -27,12 +27,6 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
                         <div class="flex items-center space-x-2">
                             <select name="category" id="categorySelect" class="w-full p-2 rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
-                                <option value="Savings">Savings</option>
-                                <option value="Investment">Investment</option>
-                                <option value="Debt Reduction">Debt Reduction</option>
-                                <option value="Emergency Fund">Emergency Fund</option>
-                                <option value="Major Purchase">Major Purchase</option>
-
                                 @foreach($categories as $category)
                                 <option value="{{ $category->name }}">{{ $category->name }}</option>
                                 @endforeach
@@ -51,6 +45,33 @@
                                 id="newCategory"
                                 class="w-full rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500"
                                 placeholder="Enter new category name">
+
+                            <div id="categoryTypeDiv">
+                                <label for="categoryType" class="block text-sm font-medium text-gray-700">Category Type</label>
+                                <select id="categoryType" name="category_type" class="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm">
+                                    <option value="needs">Needs</option>
+                                    <option value="wants">Wants</option>
+                                    <option value="savings">Savings</option>
+                                </select>
+                            </div>
+
+                            <div id="categoryScopeDiv" class="mt-2">
+                                <label class="block text-sm font-medium text-gray-700">Category Scope</label>
+                                <div class="mt-1 space-x-4">
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="category_scope" value="personal" class="form-radio text-emerald-500" checked>
+                                        <span class="ml-2">Personal</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="category_scope" value="shared" class="form-radio text-emerald-500">
+                                        <span class="ml-2">Shared</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button type="button" id="saveCategoryBtn" class="w-full mt-2 bg-emerald-500 text-white py-2 px-4 rounded-lg hover:bg-emerald-600">
+                                Save Category
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -84,6 +105,7 @@
         const newCategoryInput = document.getElementById('newCategoryInput');
         const newCategoryField = document.getElementById('newCategory');
         const addCategoryBtn = document.getElementById('addCategoryBtn');
+        const saveCategoryBtn = document.getElementById('saveCategoryBtn');
 
         addCategoryBtn.addEventListener('click', function() {
             newCategoryInput.classList.remove('hidden');
@@ -91,8 +113,8 @@
             newCategoryField.focus();
         });
 
-        newCategoryField.addEventListener('blur', function() {
-            if (this.value) {
+        saveCategoryBtn.addEventListener('click', function() {
+            if (newCategoryField.value) {
                 fetch('/categories', {
                         method: 'POST',
                         headers: {
@@ -100,7 +122,9 @@
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
                         body: JSON.stringify({
-                            name: this.value
+                            name: newCategoryField.value,
+                            type: document.getElementById('categoryType').value,
+                            scope: document.querySelector('input[name="category_scope"]:checked').value
                         })
                     })
                     .then(response => response.json())
@@ -108,7 +132,9 @@
                         const option = new Option(category.name, category.name);
                         categorySelect.add(option, categorySelect.length);
                         categorySelect.value = category.name;
+                        categorySelect.disabled = false;
                         newCategoryInput.classList.add('hidden');
+                        newCategoryField.value = '';
                     });
             }
         });

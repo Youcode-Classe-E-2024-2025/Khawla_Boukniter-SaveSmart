@@ -13,6 +13,7 @@ class Category extends Model
         'name',
         'user_id',
         'family_id',
-        'type'
+        'type',
+        'scope'
     ];
 }

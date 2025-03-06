@@ -36,7 +36,8 @@ class CategoryController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string',
-                'type' => 'required|in:needs,wants,savings,income'
+                'type' => 'required|in:needs,wants,savings,income',
+                'scope' => 'required|in:shared,personal'
             ]);
 
             Log::info('Validation passed:', $validated);
@@ -44,6 +45,7 @@ class CategoryController extends Controller
             $category = Category::create([
                 'name' => $validated['name'],
                 'type' => $validated['type'],
+                'scope' => $validated['scope'],
                 'user_id' => Auth::id(),
                 'family_id' => Auth::user()->family_id
             ]);
@@ -75,11 +77,15 @@ class CategoryController extends Controller
 
         if ($user->account_type === 'family') {
             $categories->where(function ($query) use ($user) {
-                $query->where('user_id', $user->id)
-                    ->orWhere('family_id', $user->family_id);
+                $query->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                        ->where('scope', 'personal');
+                })->orWhere(function ($q) use ($user) {
+                    $q->where('family_id', $user->family_id)->where('scope', 'shared');
+                });
             });
         } else {
-            $categories->where('user_id', $user->id);
+            $categories->where('user_id', $user->id)->where('scope', 'personal');
         }
 
         return $categories->get();
