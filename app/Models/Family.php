@@ -40,4 +40,9 @@ class Family extends Model
 
         return $code;
     }
+
+    public function getBudgetMethod()
+    {
+        return $this->budget_method ?? '50-30-20';
+    }
 }

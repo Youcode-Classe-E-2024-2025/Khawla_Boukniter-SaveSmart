@@ -27,7 +27,7 @@
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-light text-gray-800">Budget Method</h3>
                 <span class="text-sm bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full">
-                    Current: {{ auth()->user()->budget_method ?? 'Not Set' }}
+                    Current: {{ auth()->user()->account_type === 'family' ? $family->getBudgetMethod() : auth()->user()->budget_method ?? 'Not Set' }}
                 </span>
             </div>
 
@@ -54,7 +54,7 @@
                     <div class="relative">
                         <input type="radio" name="budget_method" value="{{ $method }}"
                             id="method-{{ $method }}" class="peer hidden"
-                            {{ auth()->user()->budget_method === $method ? 'checked' : '' }}>
+                            {{ (auth()->user()->account_type === 'family' ? $family->budget_method : auth()->user()->budget_method) === $method ? 'checked' : '' }}>
                         <label for="method-{{ $method }}"
                             class="block h-full p-6 bg-white border rounded-xl cursor-pointer
                                           transition-all peer-checked:border-{{ $details['color'] }}-500 
@@ -131,10 +131,10 @@
                     </span>
                 </div>
 
-                <div class="space-y-4">
+                <div class="space-y-4 px-4">
                     @foreach(['needs', 'wants', 'savings'] as $category)
-                    <div class="bg-gray-50 rounded-xl p-4">
-                        <div class="flex justify-between items-center mb-2">
+                    <div class="bg-gray-50 rounded-xl p-3 px-6">
+                        <div class="flex justify-between items-center">
                             <span class="capitalize font-medium text-gray-700">{{ $category }}</span>
                             <span class="text-emerald-600 font-medium">
                                 {{ number_format($optimizedBudget['actual'][$category], 2) }} MAD
@@ -169,35 +169,62 @@
 
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-
             @if(auth()->user()->account_type === 'family')
             <div class="bg-white rounded-2xl shadow-sm p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-light text-gray-800">Family Members</h3>
-                    <span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-sm">
-                        {{ $familyMembers->count() }} Members
-                    </span>
-                </div>
+                <div class="flex flex-col space-y-4">
+                    <!-- Header Section -->
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-light text-gray-800">Family Members</h3>
+                            <p class="text-sm text-gray-500">Manage your family account</p>
+                        </div>
+                        <span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-sm">
+                            {{ $familyMembers->count() }} Members
+                        </span>
+                    </div>
 
-                <div class="space-y-4">
-                    @foreach($familyMembers as $member)
-                    <div class="flex items-center justify-between p-4 bg-gray-50 
-                                      rounded-xl hover:bg-gray-100 transition-colors">
-                        <div class="flex items-center">
-                            <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 
-                                                rounded-full flex items-center justify-center text-white font-medium">
-                                {{ strtoupper(substr($member->name, 0, 2)) }}
+                    <!-- Invitation Code Section -->
+                    @if($family && auth()->user()->id === $family->owner_id)
+                    <div class="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h4 class="font-medium text-gray-700">Family Invitation Code</h4>
+                                <p class="text-sm text-gray-500">Share this code with family members</p>
                             </div>
-                            <div class="ml-4">
-                                <p class="text-gray-800 font-medium">{{ $member->name }}</p>
-                                <p class="text-sm text-gray-500">{{ $member->email }}</p>
+                            <div class="flex items-center space-x-2">
+                                <code class="px-4 py-2 bg-white rounded-lg border shadow-sm font-mono text-emerald-600" id="inviteCode">
+                                    {{ $family->invitation_code }}
+                                </code>
                             </div>
                         </div>
                     </div>
-                    @endforeach
+                    @endif
+
+                    <!-- Members List -->
+                    <div class="space-y-3 mt-4">
+                        @foreach($familyMembers as $member)
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all transform hover:scale-[1.01]">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white font-medium shadow-sm">
+                                    {{ strtoupper(substr($member->name, 0, 2)) }}
+                                </div>
+                                <div>
+                                    <p class="text-gray-800 font-medium">{{ $member->name }}</p>
+                                    <p class="text-sm text-gray-500">{{ $member->email }}</p>
+                                </div>
+                            </div>
+                            @if($member->id === $family->owner_id)
+                            <span class="px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-xs font-medium">
+                                Owner
+                            </span>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
             @endif
+
 
             <div class="bg-white rounded-2xl shadow-sm p-6">
                 <div class="flex justify-between items-center mb-2">

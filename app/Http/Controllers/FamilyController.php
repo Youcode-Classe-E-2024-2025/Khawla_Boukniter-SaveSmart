@@ -8,6 +8,7 @@ use App\Models\Family;
 use App\Models\User;
 use App\Models\Transaction;
 use App\Models\Goal;
+use Illuminate\Support\Facades\Log;
 
 class FamilyController extends Controller
 {
@@ -26,7 +27,8 @@ class FamilyController extends Controller
             'basicBudget' => Transaction::applyFiftyThirtyTwenty($income),
             'optimizedBudget' => Transaction::getBudgetAnalysis($user->id, $user->family_id),
             'spendingTrends' => Transaction::getSpendingTrends($user->id, $user->family_id),
-            'insights' => Transaction::getFinancialInsights($user->id, $user->family_id)
+            'insights' => Transaction::getFinancialInsights($user->id, $user->family_id),
+            'family' => Family::find($user->family_id)
         ];
     }
 
@@ -108,7 +110,20 @@ class FamilyController extends Controller
     public function updateBudgetMethod(Request $request)
     {
         $user = Auth::user();
-        $user->update(['budget_method' => $request->budget_method]);
+
+        if ($user->account_type === 'family') {
+            $update = Family::where('id', $user->family_id)->update([
+                'budget_method' => $request->budget_method
+            ]);
+
+            Log::info('Family Budget Update Result', [
+                'family_id' => $user->family_id,
+                'update_success' => $update,
+                'new_method' => $request->budget_method
+            ]);
+        } else {
+            $user->update(['budget_method' => $request->budget_method]);
+        }
 
         $income = Transaction::calculateMonthlyIncome($user->id, $user->family_id);
 
