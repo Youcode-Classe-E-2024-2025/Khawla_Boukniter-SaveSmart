@@ -33,6 +33,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('goals', GoalController::class);
 
     Route::post('/categories', [CategoryController::class, 'store']);
+    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+
+
 
     Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics.index');
 

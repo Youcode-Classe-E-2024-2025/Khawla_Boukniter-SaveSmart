@@ -86,7 +86,6 @@
                 </span>
             </div>
 
-            <!-- Budget Distribution -->
             <div class="space-y-6">
                 @foreach(['needs', 'wants', 'savings'] as $category)
                 <div class="space-y-2">
@@ -112,7 +111,6 @@
                 @endforeach
             </div>
 
-            <!-- Adjustments Summary -->
             @if(!empty($optimizedBudget['alerts']))
             <div class="mt-6 p-4 bg-yellow-50 rounded-lg">
                 <h4 class="font-medium text-yellow-800 mb-2">Budget Adjustments Required</h4>
