@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
 use App\Models\Category;
+use App\Models\Goal;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -39,12 +40,11 @@ class TransactionController extends Controller
     public function create()
     {
         $user = Auth::user();
-
         $categories = app(CategoryController::class)->getCategories();
-
         $transaction = new Transaction();
+        $activeGoals = Goal::getActiveGoals($user->id, $user->family_id);
 
-        return view('transactions.create', ['categories' => $categories, 'transaction' => $transaction]);
+        return view('transactions.create', ['categories' => $categories, 'transaction' => $transaction, 'activeGoals' => $activeGoals]);
     }
 
     /**
@@ -72,10 +72,80 @@ class TransactionController extends Controller
             'type' => $validated['type'],
             'category_id' => $categoryId,
             'amount' => $validated['amount'],
-            'description' => $validated['description']
+            'description' => $validated['description'],
+            'goal_id' => $request->goal_contribution ? $request->goal_id : null,
+            'goal_contribution' => $request->goal_contribution ? true : false,
         ]);
 
+        if ($transaction->goal_contribution) {
+            $transaction->goal->updateProgress();
+        }
+
         return redirect()->route('transactions.index')->with('success', 'Transaction added');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Transaction $transaction)
+    {
+        $categories = app(CategoryController::class)->getCategories();
+        $activeGoals = Goal::getActiveGoals(Auth::id(), Auth::user()->family_id);
+
+        return view('transactions.edit', ['transaction' => $transaction, 'categories' => $categories, 'activeGoals' => $activeGoals]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Transaction $transaction)
+    {
+        $validated = $request->validate([
+            'type' => 'required|in:income,expense',
+            'category_id' => 'required|string',
+            'amount' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'goal_id' => 'nullable|exists:goals,id',
+            'goal_contribution' => 'boolean'
+        ]);
+
+        $oldGoal = $transaction->goaol;
+
+        $transaction->update($validated);
+
+        if ($oldGoal) {
+            $oldGoal->updateProgress();
+        }
+
+        if ($transaction->goal) {
+            $transaction->goal->updateProgress();
+        }
+
+        return redirect()->route('transactions.index')->with('success', 'transaction updated');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Transaction $transaction)
+    {
+        $goal = $trasaction->goal;
+
+        $transaction->delete();
+
+        if ($goal) {
+            $goal->updateProgress();
+        }
+
+        return redirect()->route('transactions.index')->with('success', ('transaction deleted'));
     }
 
     private function validateTransactionRequest(Request $request)
@@ -142,54 +212,5 @@ class TransactionController extends Controller
         }
 
         return $request->category_id;
-    }
-
-
-
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Transaction $transaction)
-    {
-        $categories = app(CategoryController::class)->getCategories();
-
-        return view('transactions.edit', ['transaction' => $transaction, 'categories' => $categories]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Transaction $transaction)
-    {
-        $validated = $request->validate([
-            'type' => 'required|in:income,expense',
-            'category_id' => 'required|string',
-            'amount' => 'required|numeric|min:0',
-            'description' => 'nullable|string',
-        ]);
-
-        $transaction->update($validated);
-
-        return redirect()->route('transactions.index')->with('success', 'transaction updated');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Transaction $transaction)
-    {
-        $transaction->delete();
-
-        return redirect()->route('transactions.index')->with('success', ('transaction deleted'));
     }
 }

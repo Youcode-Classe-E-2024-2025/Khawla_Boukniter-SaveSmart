@@ -17,6 +17,8 @@ class Transaction extends Model
         'category_id',
         'amount',
         'description',
+        'goal_id',
+        'goal_contribution'
     ];
 
     public function user()
@@ -27,6 +29,11 @@ class Transaction extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function goal()
+    {
+        return $this->belongsTo(Goal::class);
     }
 
     public static function applyFiftyThirtyTwenty($income)

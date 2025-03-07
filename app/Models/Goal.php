@@ -36,6 +36,11 @@ class Goal extends Model
         return $this->belongsTo(Family::class);
     }
 
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
     public static function getActiveGoals($userId, $familyId)
     {
         return self::where(function ($query) use ($userId, $familyId) {
@@ -44,5 +49,11 @@ class Goal extends Model
         })
             ->where('target_date', '>', now())
             ->get();
+    }
+
+    public function updateProgress()
+    {
+        $this->current_amount = $this->transactions()->where('goal_contribution', true)->sum('amount');
+        $this->save();
     }
 }

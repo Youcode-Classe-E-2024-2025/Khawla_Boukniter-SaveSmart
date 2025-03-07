@@ -39,7 +39,7 @@
                 <div>
                     <div class="flex justify-between text-sm mb-2">
                         <span class="text-gray-600">Progress</span>
-                        <span class="font-medium">{{ number_format(($goal->current_amount / $goal->target_amount) * 100) }}%</span>
+                        <span class="font-medium">{{ number_format(($goal->current_amount / $goal->target_amount) * 100, 1) }}%</span>
                     </div>
                     <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div class="h-full bg-emerald-500 rounded-full"

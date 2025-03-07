@@ -70,6 +70,30 @@
                         class="w-full rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">{{ $transaction->description }}</textarea>
                 </div>
 
+                <div id="goalSelection" class="{{ $transaction->type !== 'expense' ? 'hidden' : '' }} mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Contribute to Goal
+                    </label>
+                    <div class="space-y-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="is_goal_contribution" class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500"
+                                {{ $transaction->goal_id ? 'checked' : '' }}>
+                            <span class="ml-2 text-gray-700">This is a goal contribution</span>
+                        </label>
+
+                        <div id="goalsList" class="{{ !$transaction->goal_id ? 'hidden' : '' }}">
+                            <select name="goal_id" class="w-full p-2 rounded-lg border-gray-300 focus:ring-emerald-500 focus:border-emerald-500">
+                                <option value="">Select a goal</option>
+                                @foreach($activeGoals as $goal)
+                                <option value="{{ $goal->id }}" {{ $transaction->goal_id == $goal->id ? 'selected' : '' }}>
+                                    {{ $goal->name }} ({{ number_format($goal->target_amount - $goal->current_amount, 2) }} MAD remaining)
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <button type="submit" class="w-full bg-emerald-500 text-white py-2 px-4 rounded-lg hover:bg-emerald-600">
                     Update Transaction
                 </button>
@@ -90,6 +114,9 @@
         const typeSelect = document.querySelector('select[name="type"]');
         const categoryTypeSelect = document.getElementById('categoryType');
         const categoryTypeDiv = document.getElementById('categoryTypeDiv');
+        const goalSelection = document.getElementById('goalSelection');
+        const goalToggle = document.querySelector('[name="is_goal_contribution"]');
+        const goalsList = document.getElementById('goalsList');
 
         console.log('Initial:', {
             categorySelect: categorySelect.value,
@@ -207,6 +234,21 @@
 
             this.submit();
         });
+
+        typeSelect.addEventListener('change', function() {
+            goalSelection.classList.toggle('hidden', this.value !== 'expense');
+        });
+
+        goalToggle.addEventListener('change', function() {
+            goalsList.classList.toggle('hidden', !this.checked);
+        });
+
+        if (typeSelect.value === 'expense') {
+            goalSelection.classList.remove('hidden');
+            if (goalToggle.checked) {
+                goalsList.classList.remove('hidden');
+            }
+        }
     });
 </script>
 @endsection

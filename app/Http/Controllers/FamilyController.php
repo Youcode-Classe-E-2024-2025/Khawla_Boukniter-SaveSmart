@@ -64,7 +64,6 @@ class FamilyController extends Controller
         return $budget;
     }
 
-
     private function getSpending($user)
     {
         $query = Transaction::where(function ($q) use ($user) {
@@ -152,62 +151,45 @@ class FamilyController extends Controller
 
     private function calculateIntelligentBudget($income, $spending, $goals)
     {
-        $essentialExpenses = $spending->where('type', 'needs')->sum('total');
-        $savingsGoals = $goals->sum('target_amount');
-        $discretionaryFunds = $income - $essentialExpenses - $savingsGoals;
+        $baseNeeds = $income * 0.5;    // 6,000
+        $baseWants = $income * 0.3;    // 3,600
+        $baseSavings = $income * 0.2;  // 2,400
+
+        // Current spending
+        $actualNeeds = $spending->where('type', 'needs')->sum('total');
+        $actualWants = $spending->where('type', 'wants')->sum('total');
+        $actualSavings = $spending->where('type', 'savings')->sum('total');
+
+        $alerts = [];
+        $adjustments = [];
+
+        // Check each category for exceeding limits
+        if ($actualNeeds > $baseNeeds) {
+            $excessNeeds = $actualNeeds - $baseNeeds;
+            $adjustments['wants'] = - ($excessNeeds * 0.6);
+            $adjustments['savings'] = - ($excessNeeds * 0.4);
+            $alerts['needs'] = "Needs exceeded by " . number_format($excessNeeds, 2) . " MAD";
+        }
+
+        if ($actualWants > $baseWants) {
+            $excessWants = $actualWants - $baseWants;
+            $adjustments['needs'] = - ($excessWants * 0.7);
+            $adjustments['savings'] = - ($excessWants * 0.3);
+            $alerts['wants'] = "Wants exceeded by " . number_format($excessWants, 2) . " MAD";
+        }
+
+        if ($actualSavings > $baseSavings) {
+            $excessSavings = $actualSavings - $baseSavings;
+            $adjustments['needs'] = - ($excessSavings * 0.7);
+            $adjustments['wants'] = - ($excessSavings * 0.3);
+            $alerts['savings'] = "Savings exceeded by " . number_format($excessSavings, 2) . " MAD";
+        }
 
         return [
-            'needs' => max($essentialExpenses, $income * 0.6),
-            'wants' => min($discretionaryFunds, $income * 0.2),
-            'savings' => max($savingsGoals, $income * 0.2)
+            'needs' => $baseNeeds + ($adjustments['needs'] ?? 0),
+            'wants' => $baseWants + ($adjustments['wants'] ?? 0),
+            'savings' => $baseSavings + ($adjustments['savings'] ?? 0),
+            'alerts' => $alerts
         ];
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // public function allocateBudget($income)
-    // {
-    //     $amountNeeds = $income * 0.5;
-    //     $amountWants = $income * 0.3;
-    //     $amountSavings = $income * 0.2;
-
-    //     if ($amountNeeds > 0.6 * $income) {
-    //         $amountWants = $this->adjustWants($amountWants);
-    //     }
-
-    //     if ($income > 10000) {
-    //         $amountSavings += 0.05 * $income;
-    //     }
-    // }
-
-    // public function adjustWants($currentWants)
-    // {
-    //     $adjustedWants = $currentWants - 0.1 * $currentWants;
-    //     return $adjustedWants;
-    // }
 }
