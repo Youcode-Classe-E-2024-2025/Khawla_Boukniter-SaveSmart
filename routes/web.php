@@ -41,6 +41,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/family/budget-method', [FamilyController::class, 'updateBudgetMethod'])->name('family.updateBudgetMethod');
     // Route::get('/family/budget', [FamilyController::class, 'budgetAnalys'])->name('family.budgetAnalys');
     Route::get('/budget/analysis', [BudgetController::class, 'analysis'])->name('budget.analysis');
+
+    Route::get('/transactions/export/pdf', [TransactionController::class, 'exportPDF'])->name('transactions.export.pdf');
+    Route::get('/transactions/export/csv', [TransactionController::class, 'exportCSV'])->name('transactions.export.csv');
 });
 
 

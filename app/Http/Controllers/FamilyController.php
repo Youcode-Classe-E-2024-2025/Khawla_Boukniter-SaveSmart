@@ -151,11 +151,10 @@ class FamilyController extends Controller
 
     private function calculateIntelligentBudget($income, $spending, $goals)
     {
-        $baseNeeds = $income * 0.5;    // 6,000
-        $baseWants = $income * 0.3;    // 3,600
-        $baseSavings = $income * 0.2;  // 2,400
+        $baseNeeds = $income * 0.5;
+        $baseWants = $income * 0.3;
+        $baseSavings = $income * 0.2;
 
-        // Current spending
         $actualNeeds = $spending->where('type', 'needs')->sum('total');
         $actualWants = $spending->where('type', 'wants')->sum('total');
         $actualSavings = $spending->where('type', 'savings')->sum('total');
@@ -163,7 +162,6 @@ class FamilyController extends Controller
         $alerts = [];
         $adjustments = [];
 
-        // Check each category for exceeding limits
         if ($actualNeeds > $baseNeeds) {
             $excessNeeds = $actualNeeds - $baseNeeds;
             $adjustments['wants'] = - ($excessNeeds * 0.6);

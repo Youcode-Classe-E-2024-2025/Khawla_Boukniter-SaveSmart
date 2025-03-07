@@ -7,7 +7,8 @@ use App\Models\Transaction;
 use App\Models\Category;
 use App\Models\Goal;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Response;
 
 class TransactionController extends Controller
 {
@@ -137,7 +138,7 @@ class TransactionController extends Controller
      */
     public function destroy(Transaction $transaction)
     {
-        $goal = $trasaction->goal;
+        $goal = $transaction->goal;
 
         $transaction->delete();
 
@@ -179,7 +180,6 @@ class TransactionController extends Controller
         $currentSpending = Transaction::calculateMonthlySpending($user->id, $user->family_id);
 
         if ($user->budget_method === '50-30-20') {
-            // Get the limit for this category type from basic 50/30/20 split
             $categoryLimit = $basicBudget[$categoryType];
             $currentAmount = $currentSpending[$categoryType];
             $remainingBudget = $categoryLimit - $currentAmount;
@@ -188,7 +188,6 @@ class TransactionController extends Controller
                 return "This transaction would exceed your {$categoryType} budget limit. Available: {$remainingBudget} MAD (Limit: {$categoryLimit} MAD)";
             }
         } else {
-            // Intelligent allocation - just check if total expenses exceed income
             $totalExpenses = array_sum($currentSpending);
             if (($totalExpenses + $amount) > $totalIncome) {
                 $remaining = $totalIncome - $totalExpenses;
@@ -212,5 +211,62 @@ class TransactionController extends Controller
         }
 
         return $request->category_id;
+    }
+
+    public function exportPDF()
+    {
+        $user = Auth::user();
+        $transactions = Transaction::query()
+            ->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('family_id', $user->family_id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $data = [
+            'transactions' => $transactions,
+            'total_income' => $transactions->where('type', 'income')->sum('amount'),
+            'total_expense' => $transactions->where('type', 'expense')->sum('amount')
+        ];
+
+        $pdf = PDF::loadView('transactions.transaction-pdf', $data);
+        return $pdf->download('transactions.pdf');
+    }
+
+    public function exportCSV()
+    {
+        $user = Auth::user();
+        $transactions = Transaction::query()
+            ->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('family_id', $user->family_id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=transactions.csv',
+        ];
+
+        $callback = function () use ($transactions) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Date', 'Type', 'Category', 'Amount', 'Description', 'User']);
+
+            foreach ($transactions as $transaction) {
+                fputcsv($file, [
+                    $transaction->created_at->format('Y-m-d'),
+                    $transaction->type,
+                    $transaction->category->name,
+                    $transaction->amount,
+                    $transaction->description,
+                    $transaction->user->name
+                ]);
+            }
+            fclose($file);
+        };
+
+        return Response::stream($callback, 200, $headers);
     }
 }
